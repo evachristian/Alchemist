@@ -34,15 +34,41 @@ body {
   position: relative;
 }
 
-/* ─── 헤더 ─── */
+/* ─── 상단바 (헤더 + 에너지) ─── */
+.topbar { position: sticky; top: 0; z-index: 20; }
 .app-header {
-  position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 18px;
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255,255,255,0.6);
 }
+
+/* ─── 에너지 바 ─── */
+.energy-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 16px;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.6);
+}
+.en-ic { font-size: 0.95rem; }
+.en-track {
+  flex: 1; height: 9px; border-radius: 999px;
+  background: rgba(180,150,170,0.22); overflow: hidden;
+}
+.en-fill {
+  height: 100%; width: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #ffd76a, #ff9ec4);
+  transition: width 0.35s ease;
+}
+.en-text { font-size: 0.74rem; font-weight: 800; color: var(--ink); min-width: 74px; text-align: right; }
+.en-timer { font-size: 0.68rem; font-weight: 700; color: var(--ink-soft); min-width: 96px; text-align: right; }
+.cost-tag, .btn-cost { font-weight: 800; }
+.cost-tag { font-size: 0.78rem; color: #d98a3a; }
+.btn-cost { font-size: 0.82rem; opacity: 0.9; }
+.spot-card.low-energy { opacity: 0.6; }
+.spot-card.low-energy .spot-go { color: var(--pink-2); }
 .app-title { font-size: 1.05rem; font-weight: 800; }
 .header-charm { display: flex; gap: 8px; align-items: center; }
 .hdr-tier { font-size: 0.82rem; font-weight: 700; background: var(--lav); padding: 4px 10px; border-radius: 999px; }

@@ -15,6 +15,8 @@ const defaultState = () => ({
   gathered:  0,           // 총 채집 횟수 (통계)
   outfit:    { ...D.DEFAULT_OUTFIT },  // 아바타 착장 (슬롯 → 아이템 id)
   unlocked:  [],          // 해금한 커스터마이징 아이템 id 목록 (starter 외)
+  energy:    D.ENERGY.cap,  // 현재 에너지 (행동력)
+  energyDay: dayKey(),      // 마지막 충전 기준 로컬 날짜 키 (YYYYMMDD)
 });
 
 let S = load();
@@ -71,6 +73,74 @@ function toast(msg) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  에너지 (행동력) — 현실 24h = 게임 24h, 로컬 자정에 충전
+// ═══════════════════════════════════════════════════════════════
+// 로컬 날짜 키 (YYYYMMDD 정수) — 날짜가 바뀌면(자정) 값이 달라짐
+function dayKey(d = new Date()) {
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+// 다음 로컬 자정까지 남은 ms
+function msToNextMidnight() {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  return next - now;
+}
+function energyCap() { return D.ENERGY.cap + (S.energyBonusCap || 0); }
+
+// 날짜가 넘어갔으면 충전. 충전이 일어났으면 true 반환.
+function refreshEnergy() {
+  const today = dayKey();
+  if (S.energyDay === today) return false;
+  // (여러 날 지났어도) 상한까지 충전 — 현재 dailyFill == cap
+  S.energy = Math.min(energyCap(), (S.energy || 0) + D.ENERGY.dailyFill);
+  S.energyDay = today;
+  save();
+  return true;
+}
+
+// 에너지 소모 시도. 부족하면 false.
+function spendEnergy(n) {
+  refreshEnergy();
+  if ((S.energy || 0) < n) return false;
+  S.energy -= n;
+  save();
+  renderEnergy();
+  return true;
+}
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function renderEnergy() {
+  const cap = energyCap();
+  const cur = Math.max(0, Math.min(cap, S.energy || 0));
+  const pct = cap > 0 ? (cur / cap) * 100 : 0;
+
+  const fill = document.getElementById('enFill');
+  const text = document.getElementById('enText');
+  const timer = document.getElementById('enTimer');
+  const hdr = document.getElementById('hdrEnergy');
+  if (fill) fill.style.width = pct.toFixed(1) + '%';
+  if (text) text.textContent = `${cur} / ${cap}`;
+  if (hdr) hdr.textContent = `⚡ ${cur}`;
+  if (timer) {
+    if (cur >= cap) {
+      timer.textContent = '가득 참';
+    } else {
+      let ms = msToNextMidnight(), s = Math.floor(ms / 1000);
+      const h = Math.floor(s / 3600); s -= h * 3600;
+      const m = Math.floor(s / 60); s -= m * 60;
+      timer.textContent = `충전까지 ${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+    }
+  }
+}
+
+// 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
+function energyTick() {
+  if (refreshEnergy()) render();   // 충전되면 화면 전체 갱신(비활성 상태 등)
+  else renderEnergy();
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  탭 전환
 // ═══════════════════════════════════════════════════════════════
 let currentTab = 'gather';
@@ -87,6 +157,10 @@ function switchTab(tab) {
 //  채집 (Gather)
 // ═══════════════════════════════════════════════════════════════
 function gather(spotId) {
+  if (!spendEnergy(D.ENERGY.cost.gather)) {
+    toast('에너지가 부족해요 ⚡ 자정에 충전돼요');
+    return;
+  }
   const id = weightedPick(spotId);
   addInv(id, 1);
   S.gathered++;
@@ -118,6 +192,10 @@ function clearCauldron() { S.cauldron = []; save(); render(); }
 
 function brew() {
   if (S.cauldron.length < 2) { toast('재료를 2개 이상 넣어주세요'); return; }
+  if (!spendEnergy(D.ENERGY.cost.brew)) {
+    toast('에너지가 부족해요 ⚡ 자정에 충전돼요');
+    return;
+  }
   // 재료 소모
   for (const id of S.cauldron) removeInv(id, 1);
   const key = D.recipeKey(S.cauldron);
@@ -190,6 +268,7 @@ function closeBrewModal() {
 // ═══════════════════════════════════════════════════════════════
 function render() {
   renderHeader();
+  renderEnergy();
   if (currentTab === 'gather') renderGather();
   if (currentTab === 'atelier') renderAtelier();
   if (currentTab === 'showcase') renderShowcase();
@@ -203,18 +282,20 @@ function renderHeader() {
 }
 
 function renderGather() {
+  const cost = D.ENERGY.cost.gather;
+  const canGather = (S.energy || 0) >= cost;
   const el = document.getElementById('spotList');
   el.innerHTML = Object.values(D.SPOTS).map(spot => {
     const chips = spot.pool.map(id => D.INGREDIENTS[id].emoji).join(' ');
     return `
-      <div class="spot-card" data-spot="${spot.id}" onclick="gather('${spot.id}')">
+      <div class="spot-card ${canGather ? '' : 'low-energy'}" data-spot="${spot.id}" onclick="gather('${spot.id}')">
         <div class="spot-emoji">${spot.emoji}</div>
         <div class="spot-info">
           <div class="spot-name">${spot.name}</div>
           <div class="spot-desc">${spot.desc}</div>
           <div class="spot-pool">${chips}</div>
         </div>
-        <div class="spot-go">채집 →</div>
+        <div class="spot-go">채집 <span class="cost-tag">⚡${cost}</span></div>
       </div>`;
   }).join('');
 }
@@ -233,6 +314,10 @@ function renderAtelier() {
     }
   }
   slots.innerHTML = slotsHtml;
+
+  // 조합 비용 표시
+  const bc = document.getElementById('brewCost');
+  if (bc) bc.textContent = `⚡${D.ENERGY.cost.brew}`;
 
   // 인벤토리 (재료)
   const invEl = document.getElementById('ingredientBag');
@@ -459,5 +544,9 @@ function resetGame() {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  refreshEnergy();          // 접속 시 자정 롤오버 반영
   switchTab('gather');
+  setInterval(energyTick, 1000);  // 카운트다운 + 자정 자동 충전
+  // 백그라운드 → 포그라운드 복귀 시 즉시 반영
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) energyTick(); });
 });

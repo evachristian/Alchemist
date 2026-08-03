@@ -199,6 +199,16 @@ const WARDROBE_SLOTS = [
   { slot: 'necklace',  label: '목걸이',  emoji: '📿' },
 ];
 
+// ─── 에너지 (Energy / 행동력) ───
+// 현실 24시간 = 게임 24시간. 로컬 자정(00:00)마다 dailyFill 만큼 충전.
+// cap: 현재 상한(=하루 충전량). 추후 유료 구매 시 상한 확장 여지.
+// cost: 행동별 소모량. 추후 크리처/공간 돌보기 등 추가 예정.
+const ENERGY = {
+  cap: 1000,
+  dailyFill: 1000,
+  cost: { gather: 10, brew: 25 },
+};
+
 // 새 캐릭터 기본 착장
 const DEFAULT_OUTFIT = {
   hair: 'hair_long', hairColor: 'hcol_brown', expression: 'exp_smile', tattoo: 'tattoo_none',
@@ -217,6 +227,6 @@ for (const r of RECIPES) RECIPE_MAP[recipeKey(r.inputs)] = r.result;
 
 window.GameData = {
   INGREDIENTS, SPOTS, RECIPES, RECIPE_MAP, SLUDGE, TIERS,
-  WARDROBE, WARDROBE_SLOTS, DEFAULT_OUTFIT,
+  WARDROBE, WARDROBE_SLOTS, DEFAULT_OUTFIT, ENERGY,
   getTier, recipeKey,
 };
