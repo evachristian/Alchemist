@@ -69,7 +69,8 @@ body {
 .btn-cost { font-size: 0.82rem; opacity: 0.9; }
 .spot-card.low-energy { opacity: 0.6; }
 .spot-card.low-energy .spot-go { color: var(--pink-2); }
-.app-title { font-size: 1.05rem; font-weight: 800; }
+.hdr-ap { font-size: 0.95rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 5px; }
+.hdr-ap b { font-size: 1.05rem; color: #d98a3a; }
 .header-charm { display: flex; gap: 8px; align-items: center; }
 .hdr-tier { font-size: 0.82rem; font-weight: 700; background: var(--lav); padding: 4px 10px; border-radius: 999px; }
 .hdr-charm { font-size: 0.9rem; font-weight: 800; background: var(--pink-2); color: #fff; padding: 4px 11px; border-radius: 999px; }

@@ -118,10 +118,10 @@ function renderEnergy() {
   const fill = document.getElementById('enFill');
   const text = document.getElementById('enText');
   const timer = document.getElementById('enTimer');
-  const hdr = document.getElementById('hdrEnergy');
+  const hdr = document.getElementById('hdrAPval');
   if (fill) fill.style.width = pct.toFixed(1) + '%';
   if (text) text.textContent = `${cur} / ${cap}`;
-  if (hdr) hdr.textContent = `⚡ ${cur}`;
+  if (hdr) hdr.textContent = cur;
   if (timer) {
     if (cur >= cap) {
       timer.textContent = '가득 참';
