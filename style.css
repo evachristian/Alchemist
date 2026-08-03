@@ -160,9 +160,9 @@ body {
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 .showcase-tier { text-align: center; font-size: 1.15rem; font-weight: 800; margin-bottom: 14px; }
 
-.stat-row { display: flex; gap: 10px; }
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-box { flex: 1; background: var(--card); border-radius: 16px; padding: 12px 8px; text-align: center; box-shadow: var(--shadow); }
-.stat-box.highlight { background: linear-gradient(140deg, var(--pink), var(--lav)); }
+.stat-box.highlight { grid-column: 1 / -1; background: linear-gradient(140deg, var(--pink), var(--lav)); }
 .stat-label { font-size: 0.72rem; color: var(--ink-soft); font-weight: 700; }
 .stat-box.highlight .stat-label { color: var(--ink); }
 .stat-val { font-size: 1.5rem; font-weight: 900; margin-top: 2px; }
