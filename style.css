@@ -137,6 +137,8 @@ body {
 .btn-ghost { background: var(--cream); color: var(--ink-soft); }
 .btn-flex { background: linear-gradient(120deg, var(--lav-2), var(--pink-2)); color: #fff; width: 100%; margin: 6px 0 4px; box-shadow: 0 4px 12px rgba(180,140,220,0.4); }
 .btn-reset { background: transparent; color: var(--ink-soft); border: 1px solid rgba(154,138,149,0.35); width: 100%; margin-top: 28px; font-weight: 600; font-size: 0.82rem; }
+/* 임시(출시 버전에서 제거): AP 충전 테스트 버튼 */
+.btn-dev { width: 100%; margin-top: 24px; font-weight: 800; font-size: 0.85rem; color: #8a5a1a; background: linear-gradient(135deg, #ffe08a, #ffd0a0); border: 1px dashed rgba(180,120,40,0.5); }
 
 /* ─── 재료 가방 ─── */
 .ingredient-bag { display: flex; flex-wrap: wrap; gap: 10px; }

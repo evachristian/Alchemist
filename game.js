@@ -530,6 +530,16 @@ function flexCharm() {
   }
 }
 
+// ─── 임시(출시 버전에서 제거): AP 가득 충전 ───
+function fillEnergy() {
+  refreshEnergy();
+  S.energy = energyCap();
+  S.energyDay = dayKey();
+  save();
+  render();
+  toast('⚡ AP를 가득 채웠어요! (임시)');
+}
+
 // ─── 초기화(디버그용) ───
 function resetGame() {
   if (confirm('정말 처음부터 다시 시작할까요? 모든 진행이 사라집니다.')) {
