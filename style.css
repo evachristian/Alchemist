@@ -34,44 +34,33 @@ body {
   position: relative;
 }
 
-/* ─── 상단바 (헤더 + 에너지) ─── */
+/* ─── 상단바 (헤더 = AP + 등급) ─── */
 .topbar { position: sticky; top: 0; z-index: 20; }
 .app-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px;
   background: rgba(255,255,255,0.55);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255,255,255,0.6);
 }
 
-/* ─── 에너지 바 ─── */
-.energy-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 16px;
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.6);
-}
+/* AP (헤더 내 에너지 게이지) */
+.ap-wrap { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
+.ap-label { font-size: 0.82rem; font-weight: 800; color: var(--ink); }
 .en-ic { font-size: 0.95rem; }
-.en-track {
-  flex: 1; height: 9px; border-radius: 999px;
-  background: rgba(180,150,170,0.22); overflow: hidden;
-}
+.en-track { flex: 1; min-width: 36px; height: 9px; border-radius: 999px; background: rgba(180,150,170,0.22); overflow: hidden; }
 .en-fill {
   height: 100%; width: 100%; border-radius: 999px;
   background: linear-gradient(90deg, #ffd76a, #ff9ec4);
   transition: width 0.35s ease;
 }
-.en-text { font-size: 0.74rem; font-weight: 800; color: var(--ink); min-width: 74px; text-align: right; }
-.en-timer { font-size: 0.68rem; font-weight: 700; color: var(--ink-soft); min-width: 96px; text-align: right; }
+.en-text { font-size: 0.72rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 .cost-tag, .btn-cost { font-weight: 800; }
 .cost-tag { font-size: 0.78rem; color: #d98a3a; }
 .btn-cost { font-size: 0.82rem; opacity: 0.9; }
 .spot-card.low-energy { opacity: 0.6; }
 .spot-card.low-energy .spot-go { color: var(--pink-2); }
-.hdr-ap { font-size: 0.95rem; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 5px; }
-.hdr-ap b { font-size: 1.05rem; color: #d98a3a; }
-.header-charm { display: flex; gap: 8px; align-items: center; }
+.header-charm { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
 .hdr-tier { font-size: 0.82rem; font-weight: 700; background: var(--lav); padding: 4px 10px; border-radius: 999px; }
 .hdr-charm { font-size: 0.9rem; font-weight: 800; background: var(--pink-2); color: #fff; padding: 4px 11px; border-radius: 999px; }
 

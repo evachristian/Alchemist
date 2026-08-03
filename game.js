@@ -117,21 +117,8 @@ function renderEnergy() {
 
   const fill = document.getElementById('enFill');
   const text = document.getElementById('enText');
-  const timer = document.getElementById('enTimer');
-  const hdr = document.getElementById('hdrAPval');
   if (fill) fill.style.width = pct.toFixed(1) + '%';
-  if (text) text.textContent = `${cur} / ${cap}`;
-  if (hdr) hdr.textContent = cur;
-  if (timer) {
-    if (cur >= cap) {
-      timer.textContent = '가득 참';
-    } else {
-      let ms = msToNextMidnight(), s = Math.floor(ms / 1000);
-      const h = Math.floor(s / 3600); s -= h * 3600;
-      const m = Math.floor(s / 60); s -= m * 60;
-      timer.textContent = `충전까지 ${pad2(h)}:${pad2(m)}:${pad2(s)}`;
-    }
-  }
+  if (text) text.textContent = `${cur}/${cap}`;
 }
 
 // 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
