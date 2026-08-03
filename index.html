@@ -60,7 +60,10 @@
 
   <!-- ── 쇼케이스 화면 ── -->
   <section id="screen-showcase" class="screen">
-    <h2 class="screen-title">✨ 나의 방</h2>
+    <div class="room-head">
+      <h2 class="screen-title">✨ 나의 방</h2>
+      <button class="btn-init" onclick="resetGame()">초기화</button>
+    </div>
 
     <div id="charStage" class="char-stage"></div>
     <div id="showcaseTier" class="showcase-tier">🌱 새싹</div>
@@ -73,19 +76,27 @@
 
     <button class="btn btn-flex" onclick="flexCharm()">📢 매력 과시</button>
 
-    <h3 class="mini-title">👗 옷장 <span class="hint">(눌러서 갈아입기)</span></h3>
-    <div id="wardrobe" class="wardrobe"></div>
+    <!-- 나의 방 하위 탭 -->
+    <div class="room-tabs">
+      <button class="room-tab active" data-rtab="clothes" onclick="setRoomTab('clothes')">👗 옷</button>
+      <button class="room-tab" data-rtab="potions" onclick="setRoomTab('potions')">🧴 물약</button>
+      <button class="room-tab" data-rtab="creatures" onclick="setRoomTab('creatures')">🦋 크리처</button>
+    </div>
 
-    <h3 class="mini-title">🧴 보유 물약 <span class="hint">(눌러서 마시기)</span></h3>
-    <div id="potionShelf" class="potion-shelf"></div>
-
-    <h3 class="mini-title">🦋 크리처 컬렉션</h3>
-    <div id="creatureCollection" class="creature-collection"></div>
+    <div id="roomPanel-clothes" class="room-panel active">
+      <div class="hint hint-block">눌러서 갈아입기</div>
+      <div id="wardrobe" class="wardrobe"></div>
+    </div>
+    <div id="roomPanel-potions" class="room-panel">
+      <div class="hint hint-block">눌러서 마시기</div>
+      <div id="potionShelf" class="potion-shelf"></div>
+    </div>
+    <div id="roomPanel-creatures" class="room-panel">
+      <div id="creatureCollection" class="creature-collection"></div>
+    </div>
 
     <!-- 임시(출시 버전에서 제거): AP 충전 테스트 버튼 -->
     <button class="btn btn-dev" onclick="fillEnergy()">⚡ AP 1000 충전 (임시)</button>
-
-    <button class="btn btn-reset" onclick="resetGame()">처음부터 다시</button>
   </section>
 
   <!-- ── 하단 탭 ── -->

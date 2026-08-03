@@ -367,6 +367,9 @@ function renderShowcase() {
   // 옷장
   renderWardrobe();
 
+  // 하위 탭(옷/물약/크리처) 표시 상태 반영
+  updateRoomTabs();
+
   // 스탯
   document.getElementById('statBeauty').textContent = S.stats.beauty;
   document.getElementById('statCharm').textContent = S.stats.charm;
@@ -410,6 +413,16 @@ function renderShowcase() {
       </div>`;
     }).join('');
   }
+}
+
+// ─── 나의 방 하위 탭 (옷 / 물약 / 크리처) ───
+let roomTab = 'clothes';
+function setRoomTab(t) { roomTab = t; updateRoomTabs(); }
+function updateRoomTabs() {
+  document.querySelectorAll('.room-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.rtab === roomTab));
+  document.querySelectorAll('.room-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'roomPanel-' + roomTab));
 }
 
 // ═══════════════════════════════════════════════════════════════
