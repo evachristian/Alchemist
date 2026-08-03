@@ -121,8 +121,29 @@ function renderEnergy() {
   if (text) text.textContent = `${cur}/${cap}`;
 }
 
+function apHelp() { toast('AP는 하루에 한 번 오전 12시에 초기화 됩니다.'); }
+
+// ─── 글로벌 시계 (한국 UTC+9 / UTC-7) ───
+// 낮(06~18시)=☀️ 해, 밤=🌙 달 로 오전/오후를 예쁘게 표시
+function zoneTime(offsetHours) {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const d = new Date(utcMs + offsetHours * 3600000);
+  const h = d.getHours();
+  const emoji = (h >= 6 && h < 18) ? '☀️' : '🌙';
+  let hh = h % 12; if (hh === 0) hh = 12;
+  return `${emoji} ${hh}:${pad2(d.getMinutes())}`;
+}
+function renderClock() {
+  const a = document.getElementById('clockKST');
+  const b = document.getElementById('clockUTC7');
+  if (a) a.textContent = `UTC+09:00 (한국) ${zoneTime(9)}`;
+  if (b) b.textContent = `UTC-07:00 ${zoneTime(-7)}`;
+}
+
 // 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
 function energyTick() {
+  renderClock();
   if (refreshEnergy()) render();   // 충전되면 화면 전체 갱신(비활성 상태 등)
   else renderEnergy();
 }
@@ -256,6 +277,7 @@ function closeBrewModal() {
 function render() {
   renderHeader();
   renderEnergy();
+  renderClock();
   if (currentTab === 'gather') renderGather();
   if (currentTab === 'atelier') renderAtelier();
   if (currentTab === 'showcase') renderShowcase();
@@ -379,8 +401,10 @@ function renderShowcase() {
   // 보유 물약
   const potEl = document.getElementById('potionShelf');
   const pids = Object.keys(S.potions);
+  const potionHint = document.getElementById('potionHint');
+  if (potionHint) potionHint.style.display = pids.length === 0 ? 'none' : 'block';
   if (pids.length === 0) {
-    potEl.innerHTML = `<div class="empty-hint">공방에서 물약을 만들어보세요 ⚗️</div>`;
+    potEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">아직 소유한 물약이 없어요. 공방에서 물약을 만들 수 있어요.</div>`;
   } else {
     potEl.innerHTML = pids.map(pid => {
       const r = D.RECIPES.find(x => x.result.id === pid);
@@ -398,7 +422,7 @@ function renderShowcase() {
   // 크리처 컬렉션
   const colEl = document.getElementById('creatureCollection');
   if (S.creatures.length === 0) {
-    colEl.innerHTML = `<div class="empty-hint">아직 전시 중인 크리처가 없어요 🦋</div>`;
+    colEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">아직 소유한 크리처가 없어요. 공방에서 크리처를 만들 수 있어요.</div>`;
   } else {
     const counts = {};
     S.creatures.forEach(c => counts[c] = (counts[c] || 0) + 1);

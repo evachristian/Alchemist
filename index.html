@@ -14,17 +14,24 @@
   <!-- ── 상단바 (헤더 + 에너지) ── -->
   <div class="topbar">
     <header class="app-header">
-      <div class="ap-wrap" title="행동력(AP) — 자정에 충전">
+      <div class="ap-wrap">
         <span class="en-ic">⚡</span>
         <span class="ap-label">AP</span>
-        <div class="en-track"><div id="enFill" class="en-fill"></div></div>
-        <span id="enText" class="en-text">0/0</span>
+        <div class="en-track">
+          <div id="enFill" class="en-fill"></div>
+          <span id="enText" class="en-text">0/0</span>
+        </div>
+        <button class="ap-help" onclick="apHelp()" aria-label="AP 안내">?</button>
       </div>
       <div class="header-charm">
         <span id="hdrTier" class="hdr-tier">🌱 새싹</span>
         <span id="hdrCharm" class="hdr-charm">🌟 0</span>
       </div>
     </header>
+    <div class="clock-bar">
+      <span id="clockKST" class="clock-item"></span>
+      <span id="clockUTC7" class="clock-item"></span>
+    </div>
   </div>
 
   <!-- ── 채집 화면 ── -->
@@ -89,7 +96,7 @@
     </div>
     <div id="roomPanel-potions" class="room-panel">
       <div id="potionShelf" class="potion-shelf"></div>
-      <div class="hint hint-block">👆 눌러서 마시기</div>
+      <div id="potionHint" class="hint hint-block">👆 눌러서 마시기</div>
     </div>
     <div id="roomPanel-creatures" class="room-panel">
       <div id="creatureCollection" class="creature-collection"></div>

@@ -44,17 +44,37 @@ body {
   border-bottom: 1px solid rgba(255,255,255,0.6);
 }
 
-/* AP (헤더 내 에너지 게이지) */
+/* AP (헤더 내 에너지 게이지 — 숫자 내부 표시 + ? 안내) */
 .ap-wrap { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
 .ap-label { font-size: 0.82rem; font-weight: 800; color: var(--ink); }
 .en-ic { font-size: 0.95rem; }
-.en-track { flex: 1; min-width: 36px; height: 9px; border-radius: 999px; background: rgba(180,150,170,0.22); overflow: hidden; }
+.en-track { position: relative; flex: 1; min-width: 60px; height: 18px; border-radius: 999px; background: rgba(180,150,170,0.22); overflow: hidden; }
 .en-fill {
-  height: 100%; width: 100%; border-radius: 999px;
+  position: absolute; left: 0; top: 0; height: 100%; width: 100%; border-radius: 999px;
   background: linear-gradient(90deg, #ffd76a, #ff9ec4);
   transition: width 0.35s ease;
 }
-.en-text { font-size: 0.72rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
+.en-text {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.68rem; font-weight: 800; color: var(--ink); white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+.ap-help {
+  flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; border: none;
+  background: rgba(154,138,149,0.28); color: var(--ink-soft); font-family: inherit;
+  font-weight: 800; font-size: 0.72rem; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.ap-help:active { transform: scale(0.92); }
+
+/* 글로벌 시계 */
+.clock-bar {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 5px 16px 6px;
+  background: rgba(255,255,255,0.4);
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+}
+.clock-item { font-size: 0.68rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
 .cost-tag, .btn-cost { font-weight: 800; }
 .cost-tag { font-size: 0.78rem; color: #d98a3a; }
 .btn-cost { font-size: 0.82rem; opacity: 0.9; }
@@ -77,7 +97,9 @@ body {
 .screen-sub { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 16px; }
 .mini-title { font-size: 1rem; font-weight: 800; margin: 22px 0 10px; }
 .mini-title .hint { font-size: 0.72rem; font-weight: 600; color: var(--ink-soft); }
-.empty-hint { color: var(--ink-soft); font-size: 0.85rem; text-align: center; padding: 20px; background: rgba(255,255,255,0.5); border-radius: var(--radius); }
+.empty-hint { grid-column: 1 / -1; color: var(--ink-soft); font-size: 0.85rem; text-align: center; padding: 24px 20px; background: rgba(255,255,255,0.5); border-radius: var(--radius); line-height: 1.5; }
+.empty-hint.clickable { cursor: pointer; transition: transform 0.1s ease, background 0.15s ease; }
+.empty-hint.clickable:active { transform: scale(0.98); background: rgba(255,255,255,0.7); }
 
 /* ─── 채집: 장소 카드 ─── */
 .spot-list { display: flex; flex-direction: column; gap: 14px; }
