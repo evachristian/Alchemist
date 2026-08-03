@@ -141,15 +141,16 @@ body {
 
 /* ─── 쇼케이스 ─── */
 .char-stage { display: flex; justify-content: center; margin: 6px 0 4px; }
-.char-aura { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+.char-aura { position: relative; width: 240px; height: 320px; display: flex; align-items: center; justify-content: center; }
 .char-aura::before {
-  content: ''; position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,200,230,0.9), rgba(230,220,255,0.2) 65%, transparent 72%);
-  filter: blur(4px);
+  content: ''; position: absolute; inset: -6% 0 12% 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, rgba(255,200,230,0.75), rgba(230,220,255,0.18) 58%, transparent 68%);
+  filter: blur(6px);
   animation: aura 4s ease-in-out infinite;
 }
-@keyframes aura { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.08); opacity: 1; } }
-.char-body { font-size: 5.4rem; position: relative; z-index: 2; filter: drop-shadow(0 6px 10px rgba(180,140,160,0.3)); }
+@keyframes aura { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
+.char-body { position: relative; z-index: 2; font-size: 0; line-height: 0; }
+.avatar-svg { height: 312px; width: auto; display: block; filter: drop-shadow(0 8px 12px rgba(180,140,160,0.28)); }
 .stage-creatures { position: absolute; inset: 0; z-index: 3; }
 .stage-creature { position: absolute; font-size: 1.6rem; animation: float 3s ease-in-out infinite; }
 .stage-creature:nth-child(1) { top: 10%; left: 12%; animation-delay: 0s; }
@@ -166,6 +167,41 @@ body {
 .stat-label { font-size: 0.72rem; color: var(--ink-soft); font-weight: 700; }
 .stat-box.highlight .stat-label { color: var(--ink); }
 .stat-val { font-size: 1.5rem; font-weight: 900; margin-top: 2px; }
+
+/* ─── 옷장 ─── */
+.wardrobe { background: var(--card); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); }
+.wr-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 9px; scrollbar-width: none; }
+.wr-tabs::-webkit-scrollbar { display: none; }
+.wr-tab {
+  flex: 0 0 auto; border: none; background: var(--cream); color: var(--ink-soft);
+  font-weight: 800; font-size: 0.76rem; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  font-family: inherit; transition: background 0.15s ease, color 0.15s ease;
+}
+.wr-tab.active { background: var(--pink-2); color: #fff; }
+.wr-tab.dim { opacity: 0.45; }
+.wr-hint { font-size: 0.68rem; color: var(--ink-soft); margin: 2px 2px 8px; line-height: 1.35; }
+.wr-items { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.wr-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  border: 2px solid transparent; background: var(--cream); border-radius: 14px;
+  padding: 9px 4px; cursor: pointer; font-family: inherit; transition: transform 0.1s ease;
+}
+.wr-item:active { transform: scale(0.94); }
+.wr-item.on { border-color: var(--pink-2); background: #fff0f7; }
+.wr-ic { font-size: 1.3rem; height: 26px; display: flex; align-items: center; justify-content: center; position: relative; }
+.wr-swatch { width: 22px; height: 22px; border-radius: 7px; display: inline-block; box-shadow: inset 0 0 0 2px rgba(0,0,0,0.06); }
+.wr-nm { font-size: 0.66rem; font-weight: 700; color: var(--ink); text-align: center; line-height: 1.15; }
+.wr-item.locked { opacity: 0.55; }
+.wr-item.locked .wr-nm { color: var(--ink-soft); }
+.wr-lock { position: absolute; right: -8px; bottom: -4px; font-size: 0.8rem; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+.wr-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 8px; }
+.wr-count { font-size: 0.72rem; font-weight: 800; color: var(--ink-soft); }
+.wr-gift {
+  border: none; background: linear-gradient(135deg, var(--lav-2), var(--pink-2)); color: #fff;
+  font-family: inherit; font-weight: 800; font-size: 0.74rem; padding: 7px 14px;
+  border-radius: 999px; cursor: pointer; box-shadow: var(--shadow);
+}
+.wr-gift:active { transform: scale(0.96); }
 
 /* ─── 물약 선반 ─── */
 .potion-shelf, .creature-collection { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

@@ -13,6 +13,8 @@ const defaultState = () => ({
   discovered: [],         // 발견한 레시피 result.id 목록
   cauldron:  [],          // 현재 가마솥에 넣은 재료 id (최대 3)
   gathered:  0,           // 총 채집 횟수 (통계)
+  outfit:    { ...D.DEFAULT_OUTFIT },  // 아바타 착장 (슬롯 → 아이템 id)
+  unlocked:  [],          // 해금한 커스터마이징 아이템 id 목록 (starter 외)
 });
 
 let S = load();
@@ -20,7 +22,12 @@ let S = load();
 function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
-    if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+    if (raw) {
+      const st = Object.assign(defaultState(), JSON.parse(raw));
+      st.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, st.outfit || {});
+      if (!Array.isArray(st.unlocked)) st.unlocked = [];
+      return st;
+    }
   } catch (e) { console.warn('load failed', e); }
   return defaultState();
 }
@@ -272,17 +279,21 @@ function renderShowcase() {
   const total = totalCharm();
   const tier = D.getTier(total);
 
-  // 캐릭터 + 전시 크리처
+  // 아바타(내 캐릭터) + 전시 크리처
   const stage = document.getElementById('charStage');
   const creatureEmojis = S.creatures.map(cid => {
     const r = D.RECIPES.find(x => x.result.id === cid);
     return r ? `<span class="stage-creature">${r.result.emoji}</span>` : '';
   }).join('');
+  const avatarSvg = window.Avatar ? window.Avatar.build(S.outfit) : tier.emoji;
   stage.innerHTML = `
     <div class="char-aura" style="--glow:${Math.min(total, 100)}">
-      <div class="char-body">${tier.emoji}</div>
+      <div class="char-body">${avatarSvg}</div>
       <div class="stage-creatures">${creatureEmojis}</div>
     </div>`;
+
+  // 옷장
+  renderWardrobe();
 
   // 스탯
   document.getElementById('statBeauty').textContent = S.stats.beauty;
@@ -327,6 +338,97 @@ function renderShowcase() {
       </div>`;
     }).join('');
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  옷장 (Wardrobe) — 아바타 착장 + 커스터마이징 잠금/해금
+// ═══════════════════════════════════════════════════════════════
+let wardrobeTab = 'hair';
+function setWardrobeTab(slot) { wardrobeTab = slot; renderWardrobe(); }
+
+function slotMeta(slot) { return D.WARDROBE_SLOTS.find(m => m.slot === slot); }
+// 아이템 보유 여부: 잠금 슬롯이 아니거나 / '없음' / starter / 해금목록에 있으면 보유
+function isOwned(slot, it) {
+  if (!slotMeta(slot) || !slotMeta(slot).gated) return true;
+  if (it.kind === 'none' || it.starter) return true;
+  return S.unlocked.includes(it.id);
+}
+
+function equip(slot, id) {
+  const it = (D.WARDROBE[slot] || []).find(x => x.id === id);
+  if (!it) return;
+  if (!isOwned(slot, it)) { toast('아직 잠긴 아이템이에요 🔒 계속 플레이하면 획득해요!'); return; }
+  // 상·하의를 고르면 원피스는 벗고, 원피스를 고르면 그대로 (렌더에서 상하의 무시)
+  if (slot === 'top' || slot === 'bottom') S.outfit.dress = 'dress_none';
+  S.outfit[slot] = id;
+  save();
+  renderShowcase();  // 아바타 + 옷장 동시 갱신
+}
+
+// 커스터마이징 해금 (추후 진행 보상에서 호출) — 콘솔/보상 공용 API
+function unlockCosmetic(id) {
+  for (const m of D.WARDROBE_SLOTS) {
+    const it = (D.WARDROBE[m.slot] || []).find(x => x.id === id);
+    if (!it) continue;
+    if (isOwned(m.slot, it)) return false;   // 이미 보유
+    S.unlocked.push(id);
+    save();
+    wardrobeTab = m.slot;
+    toast(`🎁 새 아이템 획득: ${it.name}!`);
+    if (currentTab === 'showcase') renderShowcase();
+    return true;
+  }
+  return false;
+}
+window.unlockCosmetic = unlockCosmetic;
+
+// 테스트용: 잠긴 아이템 중 하나를 무작위 해금
+function unlockRandom() {
+  const locked = [];
+  D.WARDROBE_SLOTS.filter(m => m.gated).forEach(m =>
+    (D.WARDROBE[m.slot] || []).forEach(it => { if (!isOwned(m.slot, it)) locked.push(it.id); }));
+  if (!locked.length) { toast('모든 커스터마이징을 획득했어요! 🎉'); return; }
+  unlockCosmetic(locked[Math.floor(Math.random() * locked.length)]);
+}
+
+function renderWardrobe() {
+  const el = document.getElementById('wardrobe');
+  if (!el) return;
+  const dressed = S.outfit.dress && S.outfit.dress !== 'dress_none';
+  const meta = slotMeta(wardrobeTab);
+
+  const tabs = D.WARDROBE_SLOTS.map(m => {
+    const dimmed = dressed && (m.slot === 'top' || m.slot === 'bottom');
+    return `<button class="wr-tab ${wardrobeTab === m.slot ? 'active' : ''} ${dimmed ? 'dim' : ''}"
+      onclick="setWardrobeTab('${m.slot}')">${m.emoji} ${m.label}</button>`;
+  }).join('');
+
+  const list = D.WARDROBE[wardrobeTab] || [];
+  const items = list.map(it => {
+    const on = S.outfit[wardrobeTab] === it.id;
+    const owned = isOwned(wardrobeTab, it);
+    let ic;
+    if (it.kind === 'none') ic = '🚫';
+    else if (it.emoji) ic = it.emoji;
+    else ic = `<span class="wr-swatch" style="background:${it.color || '#ccc'}"></span>`;
+    const lock = owned ? '' : '<span class="wr-lock">🔒</span>';
+    return `<button class="wr-item ${on ? 'on' : ''} ${owned ? '' : 'locked'}" onclick="equip('${wardrobeTab}','${it.id}')">
+      <span class="wr-ic">${ic}${lock}</span><span class="wr-nm">${it.name}</span></button>`;
+  }).join('');
+
+  // 잠금 슬롯이면 보유 현황 + 획득 안내
+  let foot = '';
+  if (meta && meta.gated) {
+    const total = list.length, have = list.filter(it => isOwned(wardrobeTab, it)).length;
+    foot = `<div class="wr-foot">
+      <span class="wr-count">보유 ${have} / ${total}</span>
+      <button class="wr-gift" onclick="unlockRandom()">🎁 랜덤 획득 (테스트)</button>
+    </div>`;
+  }
+  const hint = dressed && (wardrobeTab === 'top' || wardrobeTab === 'bottom')
+    ? `<div class="wr-hint">원피스를 입는 중이에요. 상·하의를 고르면 원피스가 벗겨져요.</div>` : '';
+
+  el.innerHTML = `<div class="wr-tabs">${tabs}</div>${hint}<div class="wr-items">${items}</div>${foot}`;
 }
 
 // ─── 과시(공유) ───
