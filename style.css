@@ -167,7 +167,7 @@ body {
 .btn-init:active { transform: scale(0.96); }
 
 /* 나의 방 하위 탭 */
-.room-tabs { display: flex; gap: 8px; margin: 16px 0 12px; }
+.room-tabs { display: flex; gap: 8px; margin: 16px 0 8px; }
 .room-tab {
   flex: 1; border: none; background: var(--card); color: var(--ink-soft);
   font-family: inherit; font-weight: 800; font-size: 0.86rem; padding: 10px 0;
@@ -177,7 +177,7 @@ body {
 .room-tab.active { background: var(--pink-2); color: #fff; }
 .room-panel { display: none; }
 .room-panel.active { display: block; }
-.hint-block { display: block; font-size: 0.74rem; color: var(--ink-soft); margin: 0 2px 8px; }
+.hint-block { display: block; text-align: center; font-size: 0.72rem; color: var(--ink-soft); margin: 10px 2px 0; }
 
 .char-stage { display: flex; justify-content: center; margin: 6px 0 4px; }
 .char-aura { position: relative; width: 240px; height: 320px; display: flex; align-items: center; justify-content: center; }
