@@ -64,7 +64,7 @@ const RECIPES = [
   {
     inputs: ['berry', 'herb', 'petal'],
     result: { id: 'rainbow', kind: 'potion', emoji: '🌈', name: '무지개 엘릭서',
-      desc: '전설의 엘릭서. 아름다움과 매력을 크게 끌어올린다.', beauty: 5, charm: 5 },
+      desc: '전설의 엘릭서. 비주얼과 아우라를 크게 끌어올린다.', beauty: 5, charm: 5 },
   },
 
   // ── 크리처 ──
@@ -91,7 +91,7 @@ const SLUDGE = { id: 'sludge', kind: 'sludge', emoji: '🟤', name: '수상한 �
   desc: '뭔가 잘못됐다... 재료가 아까워도 다음을 노려보자.' };
 
 // ─── 매력 등급 (Charm Tiers) ───
-// 총 매력 지수(아름다움 + 매력 + 크리처 보너스)에 따른 칭호
+// 매력 총합(비주얼 + 아우라 + 크리처 보너스)에 따른 칭호
 const TIERS = [
   { min: 0,   emoji: '🌱', title: '새싹' },
   { min: 15,  emoji: '🌸', title: '꽃봉오리' },

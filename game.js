@@ -147,7 +147,7 @@ function drinkPotion(potionId) {
   S.stats.beauty += r.result.beauty || 0;
   S.stats.charm  += r.result.charm  || 0;
   save();
-  toast(`${r.result.emoji} ${r.result.name} 사용! ✨아름다움 +${r.result.beauty} 💖매력 +${r.result.charm}`);
+  toast(`${r.result.emoji} ${r.result.name} 사용! ✨비주얼 +${r.result.beauty} 💖아우라 +${r.result.charm}`);
   render();
 }
 
@@ -160,9 +160,9 @@ function showBrewResult(result, isNew) {
   const success = result.kind !== 'sludge';
   let statLine = '';
   if (result.kind === 'potion') {
-    statLine = `<div class="brew-stats">✨ 아름다움 +${result.beauty}　💖 매력 +${result.charm}</div>`;
+    statLine = `<div class="brew-stats">✨ 비주얼 +${result.beauty}　💖 아우라 +${result.charm}</div>`;
   } else if (result.kind === 'creature') {
-    statLine = `<div class="brew-stats">💖 전시 매력 +${result.charmBonus}</div>`;
+    statLine = `<div class="brew-stats">🌟 전시 매력 +${result.charmBonus}</div>`;
   }
   body.innerHTML = `
     ${isNew ? '<div class="brew-new">🎉 NEW! 레시피 발견</div>' : ''}
@@ -192,7 +192,7 @@ function renderHeader() {
   const total = totalCharm();
   const tier = D.getTier(total);
   document.getElementById('hdrTier').textContent = `${tier.emoji} ${tier.title}`;
-  document.getElementById('hdrCharm').textContent = `💖 ${total}`;
+  document.getElementById('hdrCharm').textContent = `🌟 ${total}`;
 }
 
 function renderGather() {
@@ -333,11 +333,11 @@ function renderShowcase() {
 function flexCharm() {
   const total = totalCharm();
   const tier = D.getTier(total);
-  const text = `[다이어터 연금술사] 나의 매력 지수 ${total} — ${tier.emoji} ${tier.title} 등급!`;
+  const text = `[다이어터 연금술사] 나의 매력 총합 ${total} — ${tier.emoji} ${tier.title} 등급!`;
   if (navigator.share) {
     navigator.share({ title: '다이어터 연금술사', text }).catch(() => {});
   } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => toast('매력 지수를 복사했어요! 📋'));
+    navigator.clipboard.writeText(text).then(() => toast('매력 총합을 복사했어요! 📋'));
   } else {
     toast(text);
   }
