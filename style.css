@@ -124,7 +124,23 @@ body {
   background: var(--card); border-radius: var(--radius);
   padding: 18px; box-shadow: var(--shadow); text-align: center;
 }
-.cauldron-top { font-size: 2.6rem; }
+.cauldron-top { line-height: 0; }
+.cauldron-svg { width: 170px; max-width: 62%; height: auto; display: inline-block; filter: drop-shadow(0 6px 10px rgba(90,60,40,0.28)); }
+.cauldron-steam { animation: steam 3.2s ease-in-out infinite; transform-origin: 80px 20px; }
+@keyframes steam { 0%,100% { opacity: 0.35; transform: translateY(2px) scaleY(0.96); } 50% { opacity: 0.8; transform: translateY(-2px) scaleY(1.04); } }
+/* 보글보글 끓는 거품 */
+.cauldron-svg .bub { transform-box: fill-box; transform-origin: center; animation: bubble 2.4s ease-in-out infinite; }
+@keyframes bubble {
+  0%   { transform: scale(0);   opacity: 0; }
+  22%  { transform: scale(1);   opacity: 0.95; }
+  68%  { transform: scale(1);   opacity: 0.85; }
+  100% { transform: scale(1.5) translate(0, -4px); opacity: 0; }
+}
+.cauldron-svg .brew-surf { transform-box: fill-box; transform-origin: center; animation: brewpulse 2.6s ease-in-out infinite; }
+@keyframes brewpulse { 0%,100% { opacity: 0.28; transform: scaleY(0.9); } 50% { opacity: 0.55; transform: scaleY(1.06); } }
+/* 불꽃 일렁임 */
+.cauldron-fire { transform-box: fill-box; transform-origin: 50% 100%; animation: flame 0.9s ease-in-out infinite; }
+@keyframes flame { 0%,100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(1.14) scaleX(0.94); } }
 .cauldron-slots { display: flex; justify-content: center; gap: 12px; margin: 14px 0 16px; }
 .c-slot {
   width: 62px; height: 62px; border-radius: 16px;
@@ -187,6 +203,14 @@ body {
   padding: 7px 16px; border-radius: 999px; cursor: pointer;
 }
 .btn-init:active { transform: scale(0.96); }
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 50%; padding: 0;
+  border: 1px solid rgba(154,138,149,0.28); background: rgba(255,255,255,0.85);
+  color: var(--ink-soft); font-size: 1.25rem; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);
+  font-family: inherit; flex: 0 0 auto;
+}
+.icon-btn:active { transform: scale(0.9) rotate(-40deg); }
 
 /* 나의 방 하위 탭 */
 .room-tabs { display: flex; gap: 8px; margin: 16px 0 8px; }
@@ -201,12 +225,18 @@ body {
 .room-panel.active { display: block; }
 .hint-block { display: block; text-align: center; font-size: 0.72rem; color: var(--ink-soft); margin: 10px 2px 0; }
 
-.char-stage { display: flex; justify-content: center; margin: 6px 0 4px; }
-.char-aura { position: relative; width: 240px; height: 320px; display: flex; align-items: center; justify-content: center; }
+.char-stage { position: relative; display: flex; justify-content: center; margin: 6px 0 10px; }
+.room-scene {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  width: 300px; max-width: 100%; height: 100%; border-radius: 22px; overflow: hidden; z-index: 0;
+  box-shadow: inset 0 -18px 26px rgba(80,50,30,0.18), 0 6px 16px rgba(120,90,70,0.22);
+}
+.room-svg { width: 100%; height: 100%; display: block; }
+.char-aura { position: relative; z-index: 1; width: 240px; height: 320px; display: flex; align-items: center; justify-content: center; }
 .char-aura::before {
-  content: ''; position: absolute; inset: -6% 0 12% 0; border-radius: 50%;
-  background: radial-gradient(circle at 50% 42%, rgba(255,200,230,0.75), rgba(230,220,255,0.18) 58%, transparent 68%);
-  filter: blur(6px);
+  content: ''; position: absolute; inset: -4% 6% 10% 6%; border-radius: 50%;
+  background: radial-gradient(circle at 50% 44%, rgba(255,224,150,0.5), rgba(255,206,150,0.12) 55%, transparent 66%);
+  filter: blur(7px);
   animation: aura 4s ease-in-out infinite;
 }
 @keyframes aura { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
@@ -315,6 +345,9 @@ body {
 .brew-desc { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.5; margin-bottom: 10px; }
 .brew-stats { font-size: 0.9rem; font-weight: 800; background: var(--lav); border-radius: 12px; padding: 8px; margin-bottom: 16px; }
 .modal-card .btn { width: 100%; }
+.confirm-text { font-size: 1.02rem; font-weight: 800; line-height: 1.55; margin-bottom: 20px; }
+.confirm-actions { display: flex; gap: 10px; }
+.modal-card .confirm-actions .btn { width: auto; flex: 1; }
 
 /* ─── 토스트 ─── */
 .toast {

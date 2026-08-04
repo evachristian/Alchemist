@@ -136,9 +136,7 @@ function zoneTime(offsetHours) {
 }
 function renderClock() {
   const a = document.getElementById('clockKST');
-  const b = document.getElementById('clockUTC7');
   if (a) a.textContent = `UTC+09:00 (한국) ${zoneTime(9)}`;
-  if (b) b.textContent = `UTC-07:00 ${zoneTime(-7)}`;
 }
 
 // 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
@@ -151,7 +149,7 @@ function energyTick() {
 // ═══════════════════════════════════════════════════════════════
 //  탭 전환
 // ═══════════════════════════════════════════════════════════════
-let currentTab = 'gather';
+let currentTab = 'showcase';
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b =>
@@ -380,7 +378,9 @@ function renderShowcase() {
     return r ? `<span class="stage-creature">${r.result.emoji}</span>` : '';
   }).join('');
   const avatarSvg = window.Avatar ? window.Avatar.build(S.outfit) : tier.emoji;
+  const sceneSvg = window.Avatar && window.Avatar.roomScene ? window.Avatar.roomScene() : '';
   stage.innerHTML = `
+    <div class="room-scene">${sceneSvg}</div>
     <div class="char-aura" style="--glow:${Math.min(total, 100)}">
       <div class="char-body">${avatarSvg}</div>
       <div class="stage-creatures">${creatureEmojis}</div>
@@ -554,6 +554,33 @@ function flexCharm() {
   }
 }
 
+// ─── 확인 모달 (공용) ───
+let _confirmCb = null;
+function showConfirm(msg, cb) {
+  document.getElementById('confirmText').textContent = msg;
+  _confirmCb = cb;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+  _confirmCb = null;
+}
+function confirmYes() {
+  const cb = _confirmCb;
+  closeConfirm();
+  if (cb) cb();
+}
+
+// ─── 외형 초기화 (착장을 기본값으로) ───
+function askResetAppearance() {
+  showConfirm('정말로 나의 외형을 초기화 하시겠습니까?', () => {
+    S.outfit = { ...D.DEFAULT_OUTFIT };
+    save();
+    renderShowcase();
+    toast('외형을 초기화했어요 ✨');
+  });
+}
+
 // ─── 임시(출시 버전에서 제거): AP 가득 충전 ───
 function fillEnergy() {
   refreshEnergy();
@@ -579,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
   refreshEnergy();          // 접속 시 자정 롤오버 반영
-  switchTab('gather');
+  switchTab('showcase');
   setInterval(energyTick, 1000);  // 카운트다운 + 자정 자동 충전
   // 백그라운드 → 포그라운드 복귀 시 즉시 반영
   document.addEventListener('visibilitychange', () => { if (!document.hidden) energyTick(); });

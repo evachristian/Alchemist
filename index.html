@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ffd9ec">
 <title>다이어터 연금술사</title>
-<link rel="stylesheet" href="style.css?v=20260803b">
+<link rel="stylesheet" href="style.css?v=20260803f">
 </head>
 <body>
 
@@ -30,12 +30,11 @@
     </header>
     <div class="clock-bar">
       <span id="clockKST" class="clock-item"></span>
-      <span id="clockUTC7" class="clock-item"></span>
     </div>
   </div>
 
   <!-- ── 채집 화면 ── -->
-  <section id="screen-gather" class="screen active">
+  <section id="screen-gather" class="screen">
     <h2 class="screen-title">🌿 채집</h2>
     <p class="screen-sub">장소를 눌러 연금술 재료를 모으세요.</p>
     <div id="spotList" class="spot-list"></div>
@@ -47,7 +46,66 @@
     <p class="screen-sub">재료를 가마솥에 넣고 조합해 새 레시피를 발견하세요.</p>
 
     <div class="cauldron">
-      <div class="cauldron-top">🫕</div>
+      <div class="cauldron-top">
+        <svg class="cauldron-svg" viewBox="0 0 160 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="연금술 가마솥">
+          <defs>
+            <radialGradient id="brewG" cx="0.5" cy="0.4" r="0.6">
+              <stop offset="0" stop-color="#dff7ef"/><stop offset="0.6" stop-color="#8fdcc8"/><stop offset="1" stop-color="#57b3a0"/>
+            </radialGradient>
+            <linearGradient id="potG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#4c4652"/><stop offset="1" stop-color="#2a2631"/>
+            </linearGradient>
+            <radialGradient id="fireG" cx="0.5" cy="0.75" r="0.65">
+              <stop offset="0" stop-color="#fff3b0"/><stop offset="0.5" stop-color="#ffce49"/><stop offset="1" stop-color="#ff7a2c"/>
+            </radialGradient>
+          </defs>
+          <!-- 김 -->
+          <g class="cauldron-steam" fill="none" stroke="#d3efe7" stroke-width="4" stroke-linecap="round" opacity="0.75">
+            <path d="M64,44 q-8,-12 0,-22 q6,-8 0,-16"/>
+            <path d="M96,44 q8,-12 0,-22 q-6,-8 0,-16"/>
+            <path d="M80,40 q-6,-14 2,-26"/>
+          </g>
+          <!-- 돌 화덕 -->
+          <path d="M28,150 L34,116 L126,116 L132,150 Z" fill="#b4ac9f"/>
+          <path d="M26,150 L134,150 L134,161 L26,161 Z" fill="#9a9184"/>
+          <g stroke="#8f877a" stroke-width="1.6"><line x1="48" y1="116" x2="45" y2="150"/><line x1="112" y1="116" x2="115" y2="150"/><line x1="26" y1="155" x2="134" y2="155"/></g>
+          <!-- 아치 불구멍 -->
+          <path d="M62,150 L62,133 A18,18 0 0 1 98,133 L98,150 Z" fill="#241d1a"/>
+          <!-- 장작 -->
+          <rect x="60" y="141" width="40" height="6" rx="3" fill="#7a4f30" transform="rotate(-8 80 144)"/>
+          <rect x="60" y="146" width="40" height="6" rx="3" fill="#6a4327" transform="rotate(9 80 149)"/>
+          <!-- 불꽃 -->
+          <g class="cauldron-fire">
+            <path d="M80,149 C71,138 76,130 80,123 C84,130 89,138 80,149 Z" fill="url(#fireG)"/>
+            <path d="M70,149 C65,141 69,134 72,130 C75,136 76,143 70,149 Z" fill="#ff9a3c"/>
+            <path d="M90,149 C95,141 91,134 88,130 C85,136 84,143 90,149 Z" fill="#ff9a3c"/>
+          </g>
+          <!-- 가마솥 몸통 -->
+          <path d="M30,64 C30,58 40,54 80,54 C120,54 130,58 130,64 C130,104 112,122 80,122 C48,122 30,104 30,64 Z" fill="url(#potG)"/>
+          <path d="M42,72 C44,94 56,110 72,115 C55,113 39,97 39,73 Z" fill="#5c5666" opacity="0.55"/>
+          <!-- 측면 손잡이 고리 -->
+          <circle cx="30" cy="66" r="6" fill="none" stroke="#332f3a" stroke-width="4"/>
+          <circle cx="130" cy="66" r="6" fill="none" stroke="#332f3a" stroke-width="4"/>
+          <!-- 테두리 -->
+          <ellipse cx="80" cy="58" rx="52" ry="13" fill="#332f3a"/>
+          <ellipse cx="80" cy="56" rx="52" ry="12" fill="#4c4652"/>
+          <!-- 물약 액체 -->
+          <ellipse cx="80" cy="56" rx="45" ry="9.5" fill="url(#brewG)"/>
+          <!-- 보글보글 거품 -->
+          <g clip-path="url(#brewClip)">
+            <ellipse class="brew-surf" cx="80" cy="56" rx="45" ry="9.5" fill="#b6ecdd" opacity="0.5"/>
+            <circle class="bub" style="animation-delay:0s"    cx="63" cy="56" r="3.4" fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:0.45s" cx="78" cy="53" r="2.4" fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:0.9s"  cx="92" cy="57" r="3"   fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:1.35s" cx="71" cy="58" r="2"   fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:1.8s"  cx="99" cy="54" r="2.2" fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:2.3s"  cx="84" cy="56" r="2.7" fill="#eafaf4"/>
+          </g>
+          <clipPath id="brewClip"><ellipse cx="80" cy="56" rx="45" ry="9.5"/></clipPath>
+          <!-- 반짝 -->
+          <path d="M102,44 l1.5,3.2 3.2,1.5 -3.2,1.5 -1.5,3.2 -1.5,-3.2 -3.2,-1.5 3.2,-1.5 Z" fill="#fff3b0"/>
+        </svg>
+      </div>
       <div id="cauldronSlots" class="cauldron-slots"></div>
       <div class="cauldron-actions">
         <button class="btn btn-ghost" onclick="clearCauldron()">비우기</button>
@@ -66,10 +124,10 @@
   </section>
 
   <!-- ── 쇼케이스 화면 ── -->
-  <section id="screen-showcase" class="screen">
+  <section id="screen-showcase" class="screen active">
     <div class="room-head">
-      <h2 class="screen-title">✨ 나의 방</h2>
-      <button class="btn-init" onclick="resetGame()">초기화</button>
+      <h2 class="screen-title">✨ 마이 룸</h2>
+      <button class="icon-btn" onclick="askResetAppearance()" aria-label="외형 초기화" title="외형 초기화">↺</button>
     </div>
 
     <div id="charStage" class="char-stage"></div>
@@ -108,9 +166,9 @@
 
   <!-- ── 하단 탭 ── -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="gather"><span class="tab-icon">🌿</span>채집</button>
+    <button class="tab-btn active" data-tab="showcase"><span class="tab-icon">✨</span>마이 룸</button>
+    <button class="tab-btn" data-tab="gather"><span class="tab-icon">🌿</span>채집</button>
     <button class="tab-btn" data-tab="atelier"><span class="tab-icon">⚗️</span>공방</button>
-    <button class="tab-btn" data-tab="showcase"><span class="tab-icon">✨</span>나의 방</button>
   </nav>
 </div>
 
@@ -122,12 +180,23 @@
   </div>
 </div>
 
+<!-- ── 확인 모달 ── -->
+<div id="confirmModal" class="modal">
+  <div class="modal-card">
+    <div id="confirmText" class="confirm-text">정말로 진행할까요?</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">취소</button>
+      <button class="btn btn-primary" onclick="confirmYes()">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="data.js?v=20260803b"></script>
-<script src="avatar.js?v=20260803b"></script>
-<script src="sfx.js?v=20260803b"></script>
-<script src="game.js?v=20260803b"></script>
+<script src="data.js?v=20260803f"></script>
+<script src="avatar.js?v=20260803f"></script>
+<script src="sfx.js?v=20260803f"></script>
+<script src="game.js?v=20260803f"></script>
 </body>
 </html>

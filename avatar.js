@@ -292,5 +292,78 @@
     </svg>`;
   }
 
-  window.Avatar = { build, getItem };
+  // ═══════════════════════════════════════════════════════════════
+  //  마이 룸 배경 — 중세 연금술 공방(아뜰리에) 분위기
+  //  (아치 창문/달빛 · 선반 물약병 · 책더미 · 촛불 · 매달린 허브 · 나무 바닥)
+  // ═══════════════════════════════════════════════════════════════
+  function roomScene() {
+    return `<svg class="room-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f3e2c4"/><stop offset="1" stop-color="#e2c398"/>
+        </linearGradient>
+        <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3b3a68"/><stop offset="1" stop-color="#6d5b8e"/>
+        </linearGradient>
+        <radialGradient id="moonG" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#fff7e0"/><stop offset="1" stop-color="#ffe6a4"/>
+        </radialGradient>
+        <radialGradient id="candleG" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="rgba(255,214,140,0.85)"/><stop offset="1" stop-color="rgba(255,214,140,0)"/>
+        </radialGradient>
+      </defs>
+
+      <!-- 벽 -->
+      <rect x="0" y="0" width="320" height="320" fill="url(#wallG)"/>
+      <!-- 벽 판자 이음선 -->
+      <g stroke="rgba(150,110,70,0.18)" stroke-width="2">
+        <line x1="0" y1="90" x2="320" y2="90"/><line x1="0" y1="180" x2="320" y2="180"/>
+      </g>
+
+      <!-- 아치형 창문 -->
+      <path d="M116,150 L116,74 A44,44 0 0 1 204,74 L204,150 Z" fill="#5b4636"/>
+      <path d="M122,148 L122,76 A38,38 0 0 1 198,76 L198,148 Z" fill="url(#skyG)"/>
+      <circle cx="182" cy="72" r="13" fill="url(#moonG)"/>
+      <circle cx="176" cy="68" r="10" fill="url(#skyG)" opacity="0.5"/>
+      <circle cx="136" cy="70" r="1.5" fill="#fff"/><circle cx="150" cy="58" r="1.2" fill="#fff"/>
+      <circle cx="134" cy="120" r="1.3" fill="#fff"/><circle cx="188" cy="120" r="1.2" fill="#fff"/>
+      <line x1="160" y1="36" x2="160" y2="148" stroke="#5b4636" stroke-width="4"/>
+      <line x1="122" y1="104" x2="198" y2="104" stroke="#5b4636" stroke-width="4"/>
+
+      <!-- 나무 바닥 -->
+      <rect x="0" y="258" width="320" height="62" fill="#bb8b5a"/>
+      <rect x="0" y="258" width="320" height="7" fill="#a67a4a"/>
+      <g stroke="#a67a4a" stroke-width="2">
+        <line x1="56" y1="265" x2="56" y2="320"/><line x1="150" y1="265" x2="150" y2="320"/>
+        <line x1="244" y1="265" x2="244" y2="320"/>
+      </g>
+      <!-- 러그 -->
+      <ellipse cx="160" cy="302" rx="98" ry="17" fill="#c98b9a" opacity="0.45"/>
+      <ellipse cx="160" cy="302" rx="72" ry="11" fill="#b56f82" opacity="0.4"/>
+
+      <!-- 왼쪽 선반 + 물약병 -->
+      <rect x="6" y="180" width="82" height="8" rx="2" fill="#6b4f38"/>
+      <rect x="16" y="152" width="12" height="28" rx="4" fill="#7fd0c0"/><rect x="18" y="148" width="8" height="6" rx="2" fill="#5b4636"/>
+      <rect x="37" y="158" width="13" height="22" rx="6" fill="#f2a6c8"/><rect x="40" y="154" width="7" height="6" rx="2" fill="#5b4636"/>
+      <rect x="59" y="150" width="12" height="30" rx="4" fill="#f2cf7a"/><rect x="61" y="146" width="8" height="6" rx="2" fill="#5b4636"/>
+
+      <!-- 오른쪽 선반 + 책더미 + 촛불 -->
+      <rect x="232" y="182" width="82" height="8" rx="2" fill="#6b4f38"/>
+      <rect x="240" y="164" width="34" height="8" rx="1.5" fill="#a05a5a"/>
+      <rect x="244" y="156" width="28" height="8" rx="1.5" fill="#5a7a9a"/>
+      <rect x="242" y="148" width="33" height="8" rx="1.5" fill="#6a8a5a"/>
+      <circle cx="298" cy="176" r="15" fill="url(#candleG)"/>
+      <rect x="294" y="170" width="9" height="12" rx="2" fill="#f5efe0"/>
+      <rect x="298" y="164" width="2" height="7" fill="#e0b84a"/>
+      <ellipse cx="299" cy="162" rx="3" ry="5" fill="#ffcf6a"/>
+      <rect x="282" y="164" width="10" height="18" rx="4" fill="#b6a6e0"/><rect x="284" y="160" width="6" height="5" rx="2" fill="#5b4636"/>
+
+      <!-- 매달린 허브 (좌상단) -->
+      <g stroke="#6a5a3a" stroke-width="2"><line x1="22" y1="14" x2="22" y2="48"/><line x1="32" y1="14" x2="32" y2="44"/></g>
+      <path d="M15,46 Q22,70 29,46 Q33,62 22,64 Q11,62 15,46 Z" fill="#8aa06a"/>
+      <path d="M26,42 Q32,62 38,42 Q42,58 32,60 Q22,58 26,42 Z" fill="#7a9a5a"/>
+    </svg>`;
+  }
+
+  window.Avatar = { build, getItem, roomScene };
 })();
