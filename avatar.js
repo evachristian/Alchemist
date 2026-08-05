@@ -68,41 +68,48 @@
   // 얼굴(피부) + 귀 + 표정
   function faceAndExpression(expItem) {
     const kind = (expItem && expItem.kind) || 'smile';
-    const EYE = '#4a3a42', LIP = '#c97b86';
+    const EYE = '#4a3540', LIP = '#e58a9a';
+    // 큰 반짝이는 눈 (기본형) — 하이라이트 2개
+    const bigEye = (x) => `
+      <ellipse cx="${x}" cy="79" rx="7.6" ry="9.6" fill="${EYE}"/>
+      <ellipse cx="${x}" cy="80" rx="6" ry="7.8" fill="#6a4a58"/>
+      <circle cx="${x + 3}" cy="75" r="3.3" fill="#fff"/>
+      <circle cx="${x - 3.2}" cy="83" r="1.8" fill="#fff" opacity="0.9"/>`;
+    const lash = (x, dir) => `<path d="M${x - 8 * dir},74 Q${x - 3 * dir},70 ${x + 2 * dir},72" stroke="${EYE}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
     let eyes, mouth;
     switch (kind) {
       case 'wink':
-        eyes = `<ellipse cx="87" cy="75" rx="5" ry="6.5" fill="${EYE}"/><circle cx="88.7" cy="72.4" r="1.7" fill="#fff"/>
-          <path d="M108,76 Q113,71 118,76" stroke="${EYE}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
-        mouth = `<path d="M94,89 Q100,94 106,89" stroke="${LIP}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        eyes = `${bigEye(84)}${lash(84, 1)}
+          <path d="M108,80 Q116,72 124,80" stroke="${EYE}" stroke-width="3.4" fill="none" stroke-linecap="round"/>`;
+        mouth = `<path d="M94,92 Q100,97 106,92" stroke="${LIP}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
         break;
       case 'happy':
-        eyes = `<path d="M82,77 Q87,71 92,77" stroke="${EYE}" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-          <path d="M108,77 Q113,71 118,77" stroke="${EYE}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
-        mouth = `<path d="M92,88 Q100,98 108,88 Z" fill="#e98a9a"/><path d="M92,88 Q100,98 108,88" stroke="${LIP}" stroke-width="2" fill="none"/>`;
+        eyes = `<path d="M76,81 Q84,72 92,81" stroke="${EYE}" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+          <path d="M108,81 Q116,72 124,81" stroke="${EYE}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`;
+        mouth = `<path d="M91,90 Q100,102 109,90 Z" fill="#ee8ea0"/><path d="M94,93 Q100,98 106,93" fill="#ff9db0"/>
+          <path d="M91,90 Q100,102 109,90" stroke="${LIP}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
         break;
       case 'surprise':
-        eyes = `<circle cx="87" cy="75" r="6" fill="${EYE}"/><circle cx="89" cy="72.5" r="2" fill="#fff"/>
-          <circle cx="113" cy="75" r="6" fill="${EYE}"/><circle cx="115" cy="72.5" r="2" fill="#fff"/>`;
-        mouth = `<ellipse cx="100" cy="91" rx="3.6" ry="4.6" fill="#b5566a"/>`;
+        eyes = `<circle cx="84" cy="79" r="7.8" fill="${EYE}"/><circle cx="87" cy="75.5" r="2.8" fill="#fff"/><circle cx="81.5" cy="82" r="1.5" fill="#fff" opacity="0.9"/>
+          <circle cx="116" cy="79" r="7.8" fill="${EYE}"/><circle cx="119" cy="75.5" r="2.8" fill="#fff"/><circle cx="113.5" cy="82" r="1.5" fill="#fff" opacity="0.9"/>`;
+        mouth = `<ellipse cx="100" cy="94" rx="4.2" ry="5.2" fill="#c96a7e"/>`;
         break;
       case 'cool':
-        eyes = `<path d="M81,76 L93,75" stroke="${EYE}" stroke-width="3" fill="none" stroke-linecap="round"/>
-          <path d="M107,75 L119,76" stroke="${EYE}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-        mouth = `<path d="M95,90 L105,90" stroke="${LIP}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        eyes = `<path d="M76,79 Q84,76 92,79" stroke="${EYE}" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+          <path d="M108,79 Q116,76 124,79" stroke="${EYE}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`;
+        mouth = `<path d="M95,92 Q100,95 105,92" stroke="${LIP}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
         break;
       default: // smile
-        eyes = `<ellipse cx="87" cy="75" rx="5" ry="6.5" fill="${EYE}"/><ellipse cx="113" cy="75" rx="5" ry="6.5" fill="${EYE}"/>
-          <circle cx="88.7" cy="72.4" r="1.7" fill="#fff"/><circle cx="114.7" cy="72.4" r="1.7" fill="#fff"/>`;
-        mouth = `<path d="M94,89 Q100,94 106,89" stroke="${LIP}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        eyes = `${bigEye(84)}${bigEye(116)}${lash(84, 1)}${lash(116, -1)}`;
+        mouth = `<path d="M94,92 Q100,97 106,92" stroke="${LIP}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
     }
     return `
       <g data-part="head">
-        <ellipse cx="100" cy="70" rx="33" ry="35" fill="${SKIN}"/>
-        <ellipse cx="67" cy="76" rx="6" ry="9" fill="${SKIN}"/>
-        <ellipse cx="133" cy="76" rx="6" ry="9" fill="${SKIN}"/>
-        <ellipse cx="77" cy="86" rx="6" ry="4" fill="#ffb0c4" opacity="0.7"/>
-        <ellipse cx="123" cy="86" rx="6" ry="4" fill="#ffb0c4" opacity="0.7"/>
+        <ellipse cx="100" cy="70" rx="36" ry="37.5" fill="${SKIN}"/>
+        <ellipse cx="64" cy="80" rx="6" ry="8.5" fill="${SKIN}"/>
+        <ellipse cx="136" cy="80" rx="6" ry="8.5" fill="${SKIN}"/>
+        <ellipse cx="72" cy="91" rx="8.5" ry="5.4" fill="#ffa6c0" opacity="0.7"/>
+        <ellipse cx="128" cy="91" rx="8.5" ry="5.4" fill="#ffa6c0" opacity="0.7"/>
         ${eyes}
         ${mouth}
       </g>`;
@@ -113,12 +120,13 @@
   // ═══════════════════════════════════════════════════════════════
   function hairBack(kind, c) {
     const s = shade(c, 22);
-    const crown = `<ellipse cx="100" cy="63" rx="40" ry="42" fill="${c}"/>`;
+    // 얼굴을 넉넉히 감싸는 크라운 (옆머리-얼굴 사이 틈 방지)
+    const crown = `<ellipse cx="100" cy="68" rx="44" ry="46" fill="${c}"/>`;
     switch (kind) {
       case 'bob':
         return crown +
-          `<path d="M62,66 C58,92 62,110 75,112 C68,96 68,82 72,72 Z" fill="${c}"/>
-           <path d="M138,66 C142,92 138,110 125,112 C132,96 132,82 128,72 Z" fill="${c}"/>`;
+          `<path d="M62,64 C57,92 61,112 78,114 C86,100 82,84 82,68 Z" fill="${c}"/>
+           <path d="M138,64 C143,92 139,112 122,114 C114,100 118,84 118,68 Z" fill="${c}"/>`;
       case 'twin':
         return crown +
           `<ellipse cx="52" cy="132" rx="13" ry="36" fill="${c}" transform="rotate(10 52 132)"/>
@@ -130,22 +138,22 @@
            <circle cx="126" cy="78" r="5.5" fill="${s}"/>`;
       case 'wave':
         return crown +
-          `<path d="M58,70 C48,100 68,120 54,152 C72,142 66,108 74,80 Z" fill="${c}"/>
-           <path d="M142,70 C152,100 132,120 146,152 C128,142 134,108 126,80 Z" fill="${c}"/>`;
+          `<path d="M58,68 C48,100 68,120 54,152 C80,142 76,106 80,78 Z" fill="${c}"/>
+           <path d="M142,68 C152,100 132,120 146,152 C120,142 124,106 120,78 Z" fill="${c}"/>`;
       default: // long
         return crown +
-          `<path d="M61,66 C56,104 60,152 75,153 C66,120 66,92 72,72 Z" fill="${c}"/>
-           <path d="M139,66 C144,104 140,152 125,153 C134,120 134,92 128,72 Z" fill="${c}"/>`;
+          `<path d="M61,64 C56,104 60,152 76,153 C84,130 82,95 80,66 Z" fill="${c}"/>
+           <path d="M139,64 C144,104 140,152 124,153 C116,130 118,95 120,66 Z" fill="${c}"/>`;
     }
   }
 
   function hairFront(kind, c) {
     if (kind === 'wave') {
-      return `<path d="M67,61 C66,36 134,36 133,61 C126,49 112,50 100,64 C99,50 95,48 91,53 C85,45 74,49 67,61 Z" fill="${c}"/>`;
+      return `<path d="M62,60 C60,28 140,28 138,60 C130,46 113,47 100,62 C99,47 94,45 90,50 C83,42 70,46 62,60 Z" fill="${c}"/>`;
     }
-    // 기본 앞머리(스트레이트 뱅)
-    return `<path d="M68,60 C66,38 78,30 100,30 C122,30 134,38 132,60
-      C126,52 116,50 108,58 C104,50 96,50 92,58 C84,50 74,52 68,60 Z" fill="${c}"/>`;
+    // 기본 앞머리(스트레이트 뱅) — 정수리 크라운을 완전히 덮음
+    return `<path d="M62,59 C60,31 75,20 100,20 C125,20 140,31 138,59
+      C131,50 118,48 109,56 C105,48 95,48 91,56 C82,48 69,50 62,59 Z" fill="${c}"/>`;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -210,13 +218,13 @@
     if (isNone(it)) return '';
     const c = it.color || '#ffd76a';
     if (it.kind === 'hoop') {
-      return `<circle cx="66" cy="88" r="5" fill="none" stroke="${c}" stroke-width="2.6"/><circle cx="134" cy="88" r="5" fill="none" stroke="${c}" stroke-width="2.6"/>`;
+      return `<circle cx="63" cy="93" r="5" fill="none" stroke="${c}" stroke-width="2.6"/><circle cx="137" cy="93" r="5" fill="none" stroke="${c}" stroke-width="2.6"/>`;
     }
     if (it.kind === 'star') {
-      return `<path d="${starPath(66, 89, 4.6)}" fill="${c}"/><path d="${starPath(134, 89, 4.6)}" fill="${c}"/>`;
+      return `<path d="${starPath(63, 94, 4.6)}" fill="${c}"/><path d="${starPath(137, 94, 4.6)}" fill="${c}"/>`;
     }
-    return `<circle cx="66" cy="84" r="2.3" fill="${c}"/><ellipse cx="66" cy="90" rx="3" ry="4.4" fill="${c}"/>
-      <circle cx="134" cy="84" r="2.3" fill="${c}"/><ellipse cx="134" cy="90" rx="3" ry="4.4" fill="${c}"/>`;
+    return `<circle cx="63" cy="89" r="2.3" fill="${c}"/><ellipse cx="63" cy="95" rx="3" ry="4.4" fill="${c}"/>
+      <circle cx="137" cy="89" r="2.3" fill="${c}"/><ellipse cx="137" cy="95" rx="3" ry="4.4" fill="${c}"/>`;
   }
 
   function renderNecklace(it) {
@@ -272,22 +280,27 @@
     const hairKind = hairItem.kind === 'none' ? 'long' : hairItem.kind;
     const expItem = getItem('expression', outfit.expression);
 
+    // 몸(옷 포함)은 치비 비율로 압축 — 머리는 크게, 몸은 짧고 아담하게
+    const body = `<g transform="translate(100,106) scale(0.88,0.72) translate(-100,-106)">
+      ${legs()}
+      ${hasDress ? '' : renderBottom(bottom)}
+      ${torsoArms()}
+      ${hasDress ? renderDress(dress) : renderTop(top)}
+      ${renderNecklace(getItem('necklace', outfit.necklace))}
+    </g>`;
+
     const layers = [
       hairBack(hairKind, hairColor),
-      legs(),
-      hasDress ? '' : renderBottom(bottom),
-      torsoArms(),
-      hasDress ? renderDress(dress) : renderTop(top),
+      body,
       faceAndExpression(expItem),
       hairFront(hairKind, hairColor),
       renderTattoo(getItem('tattoo', outfit.tattoo)),
       renderEarring(getItem('earring', outfit.earring)),
-      renderNecklace(getItem('necklace', outfit.necklace)),
       renderCirclet(getItem('circlet', outfit.circlet)),
     ];
 
-    return `<svg class="avatar-svg" viewBox="0 0 200 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="내 아바타">
-      <ellipse cx="100" cy="342" rx="52" ry="8" fill="rgba(120,90,110,0.14)"/>
+    return `<svg class="avatar-svg" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="내 아바타">
+      <ellipse cx="100" cy="284" rx="46" ry="7" fill="rgba(120,90,110,0.14)"/>
       ${layers.join('')}
     </svg>`;
   }
