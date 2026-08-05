@@ -269,7 +269,7 @@ body {
 }
 @keyframes aura { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
 .char-body { position: relative; z-index: 2; font-size: 0; line-height: 0; }
-.avatar-svg { height: 296px; width: auto; display: block; filter: drop-shadow(0 8px 12px rgba(180,140,160,0.28)); }
+.avatar-svg { height: 312px; width: auto; display: block; filter: drop-shadow(0 8px 12px rgba(180,140,160,0.28)); }
 .stage-creatures { position: absolute; inset: 0; z-index: 3; }
 .stage-creature { position: absolute; font-size: 1.6rem; animation: float 3s ease-in-out infinite; }
 .stage-creature:nth-child(1) { top: 10%; left: 12%; animation-delay: 0s; }
