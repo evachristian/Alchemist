@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260803l">
+<link rel="stylesheet" href="style.css?v=20260803m">
 </head>
 <body>
 
@@ -122,7 +122,37 @@
           <path d="M100,170 L100,184 M95,176 L105,176" stroke="#6a501c" stroke-width="1.4" fill="none"/>
         </svg>
       </div>
-      <div id="cauldronSlots" class="cauldron-slots"></div>
+      <div class="magic-circle">
+        <div class="mc-ring">
+          <svg class="mc-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <radialGradient id="discG" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0" stop-color="#3a2c56"/><stop offset="0.82" stop-color="#271f3e"/><stop offset="1" stop-color="rgba(26,20,40,0)"/>
+              </radialGradient>
+              <radialGradient id="mcGlowG" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0" stop-color="rgba(200,120,230,0.4)"/><stop offset="1" stop-color="rgba(200,120,230,0)"/>
+              </radialGradient>
+            </defs>
+            <circle cx="120" cy="120" r="116" fill="url(#discG)"/>
+            <circle class="mc-core" cx="120" cy="120" r="72" fill="url(#mcGlowG)"/>
+            <g class="mc-spin" fill="none" stroke="#c9a24a" stroke-width="1.5">
+              <circle cx="120" cy="120" r="106" stroke-width="2"/>
+              <circle cx="120" cy="120" r="99"/>
+              <circle cx="120" cy="120" r="103" stroke="#dab55e" stroke-width="6" stroke-dasharray="1.5 7" opacity="0.7"/>
+              <circle cx="120" cy="120" r="54"/>
+              <circle cx="120" cy="120" r="28" opacity="0.8"/>
+              <path d="M120,30 L197.9,165 L42.1,165 Z"/>
+              <path d="M120,210 L42.1,75 L197.9,75 Z"/>
+              <g fill="#dab55e" stroke="none">
+                <circle cx="120" cy="30" r="3.6"/><circle cx="197.9" cy="165" r="3.6"/><circle cx="42.1" cy="165" r="3.6"/>
+                <circle cx="120" cy="210" r="3.6"/><circle cx="42.1" cy="75" r="3.6"/><circle cx="197.9" cy="75" r="3.6"/>
+              </g>
+              <circle cx="120" cy="120" r="10"/><circle cx="120" cy="120" r="2.6" fill="#c9a24a" stroke="none"/>
+            </g>
+          </svg>
+        </div>
+        <div id="cauldronSlots" class="cauldron-slots"></div>
+      </div>
       <div class="cauldron-actions">
         <button class="btn btn-ghost" onclick="clearCauldron()">비우기</button>
         <button class="btn btn-primary" onclick="brew()">✨ 조합하기 <span id="brewCost" class="btn-cost"></span></button>
@@ -214,9 +244,9 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="data.js?v=20260803l"></script>
-<script src="avatar.js?v=20260803l"></script>
-<script src="sfx.js?v=20260803l"></script>
-<script src="game.js?v=20260803l"></script>
+<script src="data.js?v=20260803m"></script>
+<script src="avatar.js?v=20260803m"></script>
+<script src="sfx.js?v=20260803m"></script>
+<script src="game.js?v=20260803m"></script>
 </body>
 </html>
