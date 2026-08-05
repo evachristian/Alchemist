@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260803k">
+<link rel="stylesheet" href="style.css?v=20260803l">
 </head>
 <body>
 
@@ -53,63 +53,73 @@
 
     <div class="cauldron">
       <div class="cauldron-top">
-        <svg class="cauldron-svg" viewBox="0 0 160 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="연금술 가마솥">
+        <svg class="cauldron-svg" viewBox="0 0 200 198" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="연금술 가마솥">
           <defs>
-            <radialGradient id="brewG" cx="0.5" cy="0.4" r="0.6">
-              <stop offset="0" stop-color="#dff7ef"/><stop offset="0.6" stop-color="#8fdcc8"/><stop offset="1" stop-color="#57b3a0"/>
+            <radialGradient id="bodyG" cx="0.38" cy="0.3" r="0.9">
+              <stop offset="0" stop-color="#544d5c"/><stop offset="0.55" stop-color="#332e3a"/><stop offset="1" stop-color="#1b1822"/>
             </radialGradient>
-            <linearGradient id="potG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#4c4652"/><stop offset="1" stop-color="#2a2631"/>
+            <linearGradient id="brassG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ecca72"/><stop offset="0.5" stop-color="#b8912f"/><stop offset="1" stop-color="#7d5f1f"/>
             </linearGradient>
-            <radialGradient id="fireG" cx="0.5" cy="0.75" r="0.65">
-              <stop offset="0" stop-color="#fff3b0"/><stop offset="0.5" stop-color="#ffce49"/><stop offset="1" stop-color="#ff7a2c"/>
+            <radialGradient id="brewG" cx="0.5" cy="0.5" r="0.62">
+              <stop offset="0" stop-color="#efb0f4"/><stop offset="0.45" stop-color="#b662d0"/><stop offset="1" stop-color="#5b2a74"/>
+            </radialGradient>
+            <radialGradient id="glowP" cx="0.5" cy="0.5" r="0.6">
+              <stop offset="0" stop-color="rgba(242,184,255,0.9)"/><stop offset="1" stop-color="rgba(242,184,255,0)"/>
             </radialGradient>
           </defs>
-          <!-- 김 -->
-          <g class="cauldron-steam" fill="none" stroke="#d3efe7" stroke-width="4" stroke-linecap="round" opacity="0.75">
-            <path d="M64,44 q-8,-12 0,-22 q6,-8 0,-16"/>
-            <path d="M96,44 q8,-12 0,-22 q-6,-8 0,-16"/>
-            <path d="M80,40 q-6,-14 2,-26"/>
+          <!-- 그림자 -->
+          <ellipse cx="100" cy="191" rx="72" ry="7" fill="rgba(80,60,40,0.16)"/>
+          <!-- 뒤쪽 다리 2개 -->
+          <g fill="url(#brassG)" stroke="#5a4420" stroke-width="1.5" stroke-linejoin="round">
+            <path d="M54,150 C45,164 41,178 49,186 L66,186 C63,173 63,160 68,150 Z"/>
+            <path d="M146,150 C155,164 159,178 151,186 L134,186 C137,173 137,160 132,150 Z"/>
           </g>
-          <!-- 돌 화덕 -->
-          <path d="M28,150 L34,116 L126,116 L132,150 Z" fill="#b4ac9f"/>
-          <path d="M26,150 L134,150 L134,161 L26,161 Z" fill="#9a9184"/>
-          <g stroke="#8f877a" stroke-width="1.6"><line x1="48" y1="116" x2="45" y2="150"/><line x1="112" y1="116" x2="115" y2="150"/><line x1="26" y1="155" x2="134" y2="155"/></g>
-          <!-- 아치 불구멍 -->
-          <path d="M62,150 L62,133 A18,18 0 0 1 98,133 L98,150 Z" fill="#241d1a"/>
-          <!-- 장작 -->
-          <rect x="60" y="141" width="40" height="6" rx="3" fill="#7a4f30" transform="rotate(-8 80 144)"/>
-          <rect x="60" y="146" width="40" height="6" rx="3" fill="#6a4327" transform="rotate(9 80 149)"/>
-          <!-- 불꽃 -->
-          <g class="cauldron-fire">
-            <path d="M80,149 C71,138 76,130 80,123 C84,130 89,138 80,149 Z" fill="url(#fireG)"/>
-            <path d="M70,149 C65,141 69,134 72,130 C75,136 76,143 70,149 Z" fill="#ff9a3c"/>
-            <path d="M90,149 C95,141 91,134 88,130 C85,136 84,143 90,149 Z" fill="#ff9a3c"/>
+          <!-- 몸통 -->
+          <ellipse cx="100" cy="114" rx="76" ry="64" fill="url(#bodyG)"/>
+          <ellipse cx="66" cy="82" rx="20" ry="30" fill="#5f5768" opacity="0.35" transform="rotate(-20 66 82)"/>
+          <!-- 측면 고리 손잡이 -->
+          <g stroke="url(#brassG)" fill="none" stroke-width="6">
+            <ellipse cx="23" cy="80" rx="12" ry="16"/>
+            <ellipse cx="177" cy="80" rx="12" ry="16"/>
           </g>
-          <!-- 가마솥 몸통 -->
-          <path d="M30,64 C30,58 40,54 80,54 C120,54 130,58 130,64 C130,104 112,122 80,122 C48,122 30,104 30,64 Z" fill="url(#potG)"/>
-          <path d="M42,72 C44,94 56,110 72,115 C55,113 39,97 39,73 Z" fill="#5c5666" opacity="0.55"/>
-          <!-- 측면 손잡이 고리 -->
-          <circle cx="30" cy="66" r="6" fill="none" stroke="#332f3a" stroke-width="4"/>
-          <circle cx="130" cy="66" r="6" fill="none" stroke="#332f3a" stroke-width="4"/>
-          <!-- 테두리 -->
-          <ellipse cx="80" cy="58" rx="52" ry="13" fill="#332f3a"/>
-          <ellipse cx="80" cy="56" rx="52" ry="12" fill="#4c4652"/>
-          <!-- 물약 액체 -->
-          <ellipse cx="80" cy="56" rx="45" ry="9.5" fill="url(#brewG)"/>
-          <!-- 보글보글 거품 -->
+          <rect x="29" y="58" width="15" height="13" rx="3" fill="url(#brassG)" stroke="#5a4420" stroke-width="1"/>
+          <rect x="156" y="58" width="15" height="13" rx="3" fill="url(#brassG)" stroke="#5a4420" stroke-width="1"/>
+          <!-- 놋쇠 테두리 밴드 -->
+          <ellipse cx="100" cy="65" rx="70" ry="23" fill="#6b5426"/>
+          <ellipse cx="100" cy="60" rx="70" ry="23" fill="url(#brassG)"/>
+          <g fill="#7d5f1f">
+            <circle cx="46" cy="68" r="2.4"/><circle cx="64" cy="76" r="2.6"/><circle cx="84" cy="80" r="2.6"/>
+            <circle cx="116" cy="80" r="2.6"/><circle cx="136" cy="76" r="2.6"/><circle cx="154" cy="68" r="2.4"/>
+          </g>
+          <!-- 개구부(내부 어둠) -->
+          <ellipse cx="100" cy="57" rx="56" ry="16" fill="#241b2e"/>
+          <!-- 물약(보라 발광) -->
+          <ellipse cx="100" cy="57" rx="52" ry="14" fill="url(#brewG)"/>
+          <ellipse class="brew-glow" cx="100" cy="55" rx="40" ry="10.5" fill="url(#glowP)"/>
           <g clip-path="url(#brewClip)">
-            <ellipse class="brew-surf" cx="80" cy="56" rx="45" ry="9.5" fill="#b6ecdd" opacity="0.5"/>
-            <circle class="bub" style="animation-delay:0s"    cx="63" cy="56" r="3.4" fill="#eafaf4"/>
-            <circle class="bub" style="animation-delay:0.45s" cx="78" cy="53" r="2.4" fill="#eafaf4"/>
-            <circle class="bub" style="animation-delay:0.9s"  cx="92" cy="57" r="3"   fill="#eafaf4"/>
-            <circle class="bub" style="animation-delay:1.35s" cx="71" cy="58" r="2"   fill="#eafaf4"/>
-            <circle class="bub" style="animation-delay:1.8s"  cx="99" cy="54" r="2.2" fill="#eafaf4"/>
-            <circle class="bub" style="animation-delay:2.3s"  cx="84" cy="56" r="2.7" fill="#eafaf4"/>
+            <circle class="bub" style="animation-delay:0s"    cx="80"  cy="58" r="3.2" fill="#f4d9fb"/>
+            <circle class="bub" style="animation-delay:0.5s"  cx="106" cy="54" r="2.4" fill="#f4d9fb"/>
+            <circle class="bub" style="animation-delay:1s"    cx="124" cy="59" r="2.8" fill="#f4d9fb"/>
+            <circle class="bub" style="animation-delay:1.5s"  cx="90"  cy="60" r="2"   fill="#f4d9fb"/>
+            <circle class="bub" style="animation-delay:2s"    cx="132" cy="55" r="2"   fill="#f4d9fb"/>
           </g>
-          <clipPath id="brewClip"><ellipse cx="80" cy="56" rx="45" ry="9.5"/></clipPath>
-          <!-- 반짝 -->
-          <path d="M102,44 l1.5,3.2 3.2,1.5 -3.2,1.5 -1.5,3.2 -1.5,-3.2 -3.2,-1.5 3.2,-1.5 Z" fill="#fff3b0"/>
+          <clipPath id="brewClip"><ellipse cx="100" cy="57" rx="52" ry="14"/></clipPath>
+          <g fill="#fff">
+            <circle class="twinkle" style="animation-delay:0s"   cx="86"  cy="52" r="1.5"/>
+            <circle class="twinkle" style="animation-delay:0.6s" cx="112" cy="50" r="1.7"/>
+            <circle class="twinkle" style="animation-delay:1.1s" cx="128" cy="55" r="1.3"/>
+            <circle class="twinkle" style="animation-delay:1.7s" cx="98"  cy="53" r="1.2"/>
+          </g>
+          <!-- 전면 메달리온 -->
+          <ellipse cx="100" cy="94" rx="19" ry="16" fill="url(#brassG)" stroke="#5a4420" stroke-width="1.5"/>
+          <ellipse cx="100" cy="94" rx="13" ry="10.5" fill="#8a6a24"/>
+          <path d="M100,86 C97,90 97,93 100,95 C103,93 103,90 100,86 Z" fill="url(#brassG)"/>
+          <path d="M92,92 C95,92 98,94 100,98 C97,99 92,97 92,92 Z M108,92 C105,92 102,94 100,98 C103,99 108,97 108,92 Z" fill="url(#brassG)"/>
+          <rect x="98.7" y="94" width="2.6" height="8" rx="1" fill="url(#brassG)"/>
+          <!-- 앞쪽 가운데 다리 -->
+          <path d="M87,166 C85,179 89,188 100,188 C111,188 115,179 113,166 C108,170 92,170 87,166 Z" fill="url(#brassG)" stroke="#5a4420" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M100,170 L100,184 M95,176 L105,176" stroke="#6a501c" stroke-width="1.4" fill="none"/>
         </svg>
       </div>
       <div id="cauldronSlots" class="cauldron-slots"></div>
@@ -204,9 +214,9 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="data.js?v=20260803k"></script>
-<script src="avatar.js?v=20260803k"></script>
-<script src="sfx.js?v=20260803k"></script>
-<script src="game.js?v=20260803k"></script>
+<script src="data.js?v=20260803l"></script>
+<script src="avatar.js?v=20260803l"></script>
+<script src="sfx.js?v=20260803l"></script>
+<script src="game.js?v=20260803l"></script>
 </body>
 </html>

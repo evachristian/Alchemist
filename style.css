@@ -128,9 +128,7 @@ body {
 .bag-count { font-size: 0.74rem; font-weight: 700; color: var(--ink-soft); }
 .bag-chevron { margin-left: auto; font-size: 0.9rem; color: var(--ink-soft); }
 .cauldron-top { line-height: 0; }
-.cauldron-svg { width: 170px; max-width: 62%; height: auto; display: inline-block; filter: drop-shadow(0 6px 10px rgba(90,60,40,0.28)); }
-.cauldron-steam { animation: steam 3.2s ease-in-out infinite; transform-origin: 80px 20px; }
-@keyframes steam { 0%,100% { opacity: 0.35; transform: translateY(2px) scaleY(0.96); } 50% { opacity: 0.8; transform: translateY(-2px) scaleY(1.04); } }
+.cauldron-svg { width: 180px; max-width: 66%; height: auto; display: inline-block; filter: drop-shadow(0 8px 12px rgba(70,50,60,0.3)); }
 /* 보글보글 끓는 거품 */
 .cauldron-svg .bub { transform-box: fill-box; transform-origin: center; animation: bubble 2.4s ease-in-out infinite; }
 @keyframes bubble {
@@ -139,11 +137,12 @@ body {
   68%  { transform: scale(1);   opacity: 0.85; }
   100% { transform: scale(1.5) translate(0, -4px); opacity: 0; }
 }
-.cauldron-svg .brew-surf { transform-box: fill-box; transform-origin: center; animation: brewpulse 2.6s ease-in-out infinite; }
-@keyframes brewpulse { 0%,100% { opacity: 0.28; transform: scaleY(0.9); } 50% { opacity: 0.55; transform: scaleY(1.06); } }
-/* 불꽃 일렁임 */
-.cauldron-fire { transform-box: fill-box; transform-origin: 50% 100%; animation: flame 0.9s ease-in-out infinite; }
-@keyframes flame { 0%,100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(1.14) scaleX(0.94); } }
+/* 보라 물약 발광 맥동 */
+.cauldron-svg .brew-glow { transform-box: fill-box; transform-origin: center; animation: brewglow 2.8s ease-in-out infinite; }
+@keyframes brewglow { 0%,100% { opacity: 0.55; transform: scale(0.92); } 50% { opacity: 1; transform: scale(1.08); } }
+/* 별 반짝임 */
+.cauldron-svg .twinkle { transform-box: fill-box; transform-origin: center; animation: twinkle 2.2s ease-in-out infinite; }
+@keyframes twinkle { 0%,100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.2); } }
 .cauldron-slots { display: flex; justify-content: center; gap: 12px; margin: 14px 0 16px; }
 .c-slot {
   width: 62px; height: 62px; border-radius: 16px;
