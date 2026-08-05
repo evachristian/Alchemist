@@ -124,6 +124,9 @@ body {
   background: var(--card); border-radius: var(--radius);
   padding: 18px; box-shadow: var(--shadow); text-align: center;
 }
+.bag-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.bag-count { font-size: 0.74rem; font-weight: 700; color: var(--ink-soft); }
+.bag-chevron { margin-left: auto; font-size: 0.9rem; color: var(--ink-soft); }
 .cauldron-top { line-height: 0; }
 .cauldron-svg { width: 170px; max-width: 62%; height: auto; display: inline-block; filter: drop-shadow(0 6px 10px rgba(90,60,40,0.28)); }
 .cauldron-steam { animation: steam 3.2s ease-in-out infinite; transform-origin: 80px 20px; }

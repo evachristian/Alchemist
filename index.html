@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ffd9ec">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>다이어터 연금술사</title>
-<link rel="stylesheet" href="style.css?v=20260803f">
+<link rel="stylesheet" href="style.css?v=20260803h">
 </head>
 <body>
 
@@ -113,7 +116,11 @@
       </div>
     </div>
 
-    <h3 class="mini-title">🎒 재료 가방</h3>
+    <h3 class="mini-title bag-toggle" onclick="toggleBag()">
+      <span>🎒 채집 가방</span>
+      <span id="bagCount" class="bag-count"></span>
+      <span id="bagChevron" class="bag-chevron">▸</span>
+    </h3>
     <div id="ingredientBag" class="ingredient-bag"></div>
 
     <div class="recipe-book-head">
@@ -167,8 +174,8 @@
   <!-- ── 하단 탭 ── -->
   <nav class="tab-bar">
     <button class="tab-btn active" data-tab="showcase"><span class="tab-icon">✨</span>마이 룸</button>
-    <button class="tab-btn" data-tab="gather"><span class="tab-icon">🌿</span>채집</button>
     <button class="tab-btn" data-tab="atelier"><span class="tab-icon">⚗️</span>공방</button>
+    <button class="tab-btn" data-tab="gather"><span class="tab-icon">🌿</span>채집</button>
   </nav>
 </div>
 
@@ -194,9 +201,9 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="data.js?v=20260803f"></script>
-<script src="avatar.js?v=20260803f"></script>
-<script src="sfx.js?v=20260803f"></script>
-<script src="game.js?v=20260803f"></script>
+<script src="data.js?v=20260803h"></script>
+<script src="avatar.js?v=20260803h"></script>
+<script src="sfx.js?v=20260803h"></script>
+<script src="game.js?v=20260803h"></script>
 </body>
 </html>

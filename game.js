@@ -196,6 +196,16 @@ function removeFromCauldron(idx) {
 }
 function clearCauldron() { S.cauldron = []; save(); render(); }
 
+// 채집 가방 접기/펼치기 (기본: 닫힘)
+let bagOpen = false;
+function toggleBag() { bagOpen = !bagOpen; applyBagState(); }
+function applyBagState() {
+  const bag = document.getElementById('ingredientBag');
+  const chev = document.getElementById('bagChevron');
+  if (bag) bag.style.display = bagOpen ? '' : 'none';
+  if (chev) chev.textContent = bagOpen ? '▾' : '▸';
+}
+
 function brew() {
   if (S.cauldron.length < 2) { toast('재료를 2개 이상 넣어주세요'); return; }
   if (!spendEnergy(D.ENERGY.cost.brew)) {
@@ -344,6 +354,11 @@ function renderAtelier() {
         </div>`;
     }).join('');
   }
+
+  // 채집 가방 접힘/펼침 상태 반영
+  const bagCount = document.getElementById('bagCount');
+  if (bagCount) bagCount.textContent = ids.length ? `${ids.length}종` : '비어있음';
+  applyBagState();
 
   // 레시피 북
   const bookEl = document.getElementById('recipeBook');
