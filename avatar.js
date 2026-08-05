@@ -258,61 +258,6 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
-  //  앞치마 (옷 위에 덧입힘)
-  // ═══════════════════════════════════════════════════════════════
-  function renderApron(it) {
-    if (isNone(it)) return '';
-    const c = it.color || '#b0855a', c2 = shade(c, 30);
-    return `
-      <path d="M86,116 L82,150" stroke="${c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M114,116 L118,150" stroke="${c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M80,148 L120,148 L124,205 C114,211 86,211 76,205 Z" fill="${c}"/>
-      <rect x="86" y="120" width="28" height="30" rx="5" fill="${c}"/>
-      <rect x="73" y="149" width="54" height="7" rx="3.5" fill="${c2}"/>
-      <rect x="89" y="169" width="22" height="17" rx="3" fill="none" stroke="${c2}" stroke-width="2"/>`;
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  //  손에 드는 아이템 (오른손/왼손)
-  // ═══════════════════════════════════════════════════════════════
-  function renderHandItem(it, cx, cy) {
-    if (isNone(it)) return '';
-    switch (it.kind) {
-      case 'potion':
-        return `<g class="av-potion">
-          <circle cx="${cx}" cy="${cy}" r="16" fill="url(#avPotGlow)"/>
-          <circle cx="${cx}" cy="${cy + 2}" r="9" fill="#eaf6ff" opacity="0.4"/>
-          <circle cx="${cx}" cy="${cy + 3}" r="8.4" fill="url(#avPotBrew)"/>
-          <ellipse cx="${cx - 3}" cy="${cy + 1}" rx="1.8" ry="3.4" fill="#fff" opacity="0.6"/>
-          <rect x="${cx - 2.4}" y="${cy - 13}" width="4.8" height="8" rx="1.5" fill="#e7dcc8"/>
-          <rect x="${cx - 3.2}" y="${cy - 16}" width="6.4" height="4" rx="1.6" fill="#a9764a"/>
-          <path d="${starPath(cx + 9, cy - 5, 2.4)}" fill="#fff6c0"/>
-        </g>`;
-      case 'wand':
-        return `<g transform="rotate(16 ${cx} ${cy})">
-          <rect x="${cx - 1.6}" y="${cy - 18}" width="3.2" height="34" rx="1.6" fill="#7a5636"/>
-          <path d="${starPath(cx, cy - 21, 6)}" fill="#ffe07a" stroke="#e0b84a" stroke-width="1"/>
-        </g>`;
-      case 'dumbbell':
-        return `<g transform="rotate(18 ${cx} ${cy})">
-          <rect x="${cx - 3}" y="${cy - 11}" width="6" height="22" rx="2" fill="#7a808a"/>
-          <rect x="${cx - 9}" y="${cy - 15}" width="18" height="10" rx="3" fill="#41464e"/>
-          <rect x="${cx - 9}" y="${cy + 5}" width="18" height="10" rx="3" fill="#41464e"/>
-          <rect x="${cx - 11}" y="${cy - 13}" width="4" height="6" rx="2" fill="#5a5f68"/>
-          <rect x="${cx - 11}" y="${cy + 7}" width="4" height="6" rx="2" fill="#5a5f68"/>
-        </g>`;
-      case 'book':
-        return `<g transform="rotate(-8 ${cx} ${cy})">
-          <rect x="${cx - 11}" y="${cy - 8}" width="22" height="17" rx="2" fill="#8a3a3a"/>
-          <rect x="${cx - 11}" y="${cy - 8}" width="5" height="17" fill="#6a2a2a"/>
-          <path d="${starPath(cx + 2, cy + 0.5, 3.4)}" fill="#ffe07a"/>
-        </g>`;
-      default:
-        return '';
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════
   //  조립
   // ═══════════════════════════════════════════════════════════════
   function build(outfit) {
@@ -333,27 +278,15 @@
       hasDress ? '' : renderBottom(bottom),
       torsoArms(),
       hasDress ? renderDress(dress) : renderTop(top),
-      renderApron(getItem('apron', outfit.apron)),
       faceAndExpression(expItem),
       hairFront(hairKind, hairColor),
       renderTattoo(getItem('tattoo', outfit.tattoo)),
       renderEarring(getItem('earring', outfit.earring)),
       renderNecklace(getItem('necklace', outfit.necklace)),
       renderCirclet(getItem('circlet', outfit.circlet)),
-      // 손에 드는 아이템 (앞쪽) — 오른손=관객 왼쪽, 왼손=관객 오른쪽
-      renderHandItem(getItem('rightHand', outfit.rightHand), 48, 200),
-      renderHandItem(getItem('leftHand', outfit.leftHand), 152, 202),
     ];
 
     return `<svg class="avatar-svg" viewBox="0 0 200 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="내 아바타">
-      <defs>
-        <radialGradient id="avPotGlow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stop-color="rgba(255,224,140,0.9)"/><stop offset="1" stop-color="rgba(255,224,140,0)"/>
-        </radialGradient>
-        <linearGradient id="avPotBrew" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffe07a"/><stop offset="1" stop-color="#ff6ea6"/>
-        </linearGradient>
-      </defs>
       <ellipse cx="100" cy="342" rx="52" ry="8" fill="rgba(120,90,110,0.14)"/>
       ${layers.join('')}
     </svg>`;
@@ -364,23 +297,7 @@
   //  돌벽 · 아치 창문/달빛 · 나무 바닥만. 가구/소품은 추후 사용자가 배치.
   //  (viewBox를 넓게 잡고 CSS에서 전체 폭으로 슬라이스 → 네모 프레임 없이 열린 방)
   // ═══════════════════════════════════════════════════════════════
-  // 벽 연금술/행성 문양 (수은☿ 계열 글리프) — 방 장식 슬롯
-  function mercuryGlyph(x, y) {
-    return `<g stroke="rgba(140,112,66,0.34)" stroke-width="2.4" fill="none" stroke-linecap="round">
-      <circle cx="${x}" cy="${y}" r="9"/>
-      <path d="M${x - 6},${y - 13} A7,7 0 0 0 ${x + 6},${y - 13}"/>
-      <line x1="${x}" y1="${y + 9}" x2="${x}" y2="${y + 21}"/>
-      <line x1="${x - 6}" y1="${y + 15}" x2="${x + 6}" y2="${y + 15}"/>
-    </g>`;
-  }
-  function wallRunes() {
-    return mercuryGlyph(56, 116) + mercuryGlyph(344, 116) + mercuryGlyph(56, 198) + mercuryGlyph(344, 198);
-  }
-
-  function roomScene(outfit) {
-    outfit = outfit || {};
-    const deco = getItem('roomDeco', outfit.roomDeco);
-    const decoSvg = deco && deco.kind === 'runes' ? wallRunes() : '';
+  function roomScene() {
     return `<svg class="room-svg" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
         <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1">
@@ -412,7 +329,6 @@
         <line x1="70" y1="140" x2="70" y2="210"/><line x1="330" y1="140" x2="330" y2="210"/>
       </g>
       <rect x="0" y="0" width="400" height="238" fill="url(#glowG)"/>
-      ${decoSvg}
 
       <!-- 나무 바닥 -->
       <rect x="0" y="235" width="400" height="85" fill="url(#floorG)"/>

@@ -393,7 +393,7 @@ function renderShowcase() {
     return r ? `<span class="stage-creature">${r.result.emoji}</span>` : '';
   }).join('');
   const avatarSvg = window.Avatar ? window.Avatar.build(S.outfit) : tier.emoji;
-  const sceneSvg = window.Avatar && window.Avatar.roomScene ? window.Avatar.roomScene(S.outfit) : '';
+  const sceneSvg = window.Avatar && window.Avatar.roomScene ? window.Avatar.roomScene() : '';
   stage.innerHTML = `
     <div class="room-scene">${sceneSvg}</div>
     <div class="char-aura" style="--glow:${Math.min(total, 100)}">

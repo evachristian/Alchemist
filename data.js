@@ -182,26 +182,6 @@ const WARDROBE = {
     { id: 'necklace_pearl',   slot: 'necklace', kind: 'pearl',   name: '진주',   color: '#ffffff', emoji: '🤍' },
     { id: 'necklace_choker',  slot: 'necklace', kind: 'choker',  name: '초커',   color: '#ff9ec4', emoji: '🎀' },
   ],
-  apron: [
-    { id: 'apron_none',  slot: 'apron', kind: 'none',  name: '없음' },
-    { id: 'apron_brown', slot: 'apron', kind: 'brown', name: '가죽 앞치마', color: '#b0855a', emoji: '🥼' },
-    { id: 'apron_green', slot: 'apron', kind: 'green', name: '초록 앞치마', color: '#7c9a60', emoji: '🥬' },
-    { id: 'apron_navy',  slot: 'apron', kind: 'navy',  name: '네이비 앞치마', color: '#5f6f97', emoji: '🔷' },
-  ],
-  rightHand: [
-    { id: 'rhand_none',   slot: 'rightHand', kind: 'none',   name: '없음' },
-    { id: 'rhand_potion', slot: 'rightHand', kind: 'potion', name: '빛나는 물약', emoji: '🧪' },
-    { id: 'rhand_wand',   slot: 'rightHand', kind: 'wand',   name: '마법 지팡이', emoji: '🪄' },
-  ],
-  leftHand: [
-    { id: 'lhand_none',     slot: 'leftHand', kind: 'none',     name: '없음' },
-    { id: 'lhand_dumbbell', slot: 'leftHand', kind: 'dumbbell', name: '덤벨', emoji: '🏋️' },
-    { id: 'lhand_book',     slot: 'leftHand', kind: 'book',     name: '연금술서', emoji: '📕' },
-  ],
-  roomDeco: [
-    { id: 'deco_none',  slot: 'roomDeco', kind: 'none',  name: '없음' },
-    { id: 'deco_runes', slot: 'roomDeco', kind: 'runes', name: '연금술 문양', emoji: '🔮' },
-  ],
 };
 
 // 옷장 슬롯 메타 (UI 탭 순서/라벨)
@@ -214,13 +194,9 @@ const WARDROBE_SLOTS = [
   { slot: 'top',       label: '상의',    emoji: '👕' },
   { slot: 'bottom',    label: '하의',    emoji: '👖' },
   { slot: 'dress',     label: '원피스',  emoji: '👗' },
-  { slot: 'apron',     label: '앞치마',  emoji: '🥼' },
   { slot: 'circlet',   label: '서클렛',  emoji: '👑' },
   { slot: 'earring',   label: '귀걸이',  emoji: '💎' },
   { slot: 'necklace',  label: '목걸이',  emoji: '📿' },
-  { slot: 'rightHand', label: '오른손',  emoji: '🤚' },
-  { slot: 'leftHand',  label: '왼손',    emoji: '✋' },
-  { slot: 'roomDeco',  label: '방 장식', emoji: '🖼️' },
 ];
 
 // ─── 에너지 (Energy / 행동력) ───
@@ -237,8 +213,7 @@ const ENERGY = {
 const DEFAULT_OUTFIT = {
   hair: 'hair_long', hairColor: 'hcol_brown', expression: 'exp_smile', tattoo: 'tattoo_none',
   top: 'top_tee', bottom: 'bottom_skirt', dress: 'dress_none',
-  apron: 'apron_brown', circlet: 'circlet_none', earring: 'earring_none', necklace: 'necklace_none',
-  rightHand: 'rhand_potion', leftHand: 'lhand_dumbbell', roomDeco: 'deco_runes',
+  circlet: 'circlet_none', earring: 'earring_none', necklace: 'necklace_none',
 };
 
 // 조합 판정용: 재료 id 배열을 정렬해 문자열 키로
