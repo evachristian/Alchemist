@@ -110,6 +110,30 @@ body {
 .hdr-charm { font-size: 0.9rem; font-weight: 800; color: var(--ink); padding: 0 9px 0 3px; min-width: 20px; text-align: center; }
 .tier-ic { font-size: 0.95rem; }
 .stat-box.highlight { cursor: pointer; }
+.tier-name { font-weight: 800; color: var(--ink); }
+/* 설정 톱니바퀴 */
+.hdr-gear {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; border: none; padding: 0;
+  background: rgba(255,255,255,0.75); font-size: 0.98rem; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.hdr-gear:active { transform: scale(0.9) rotate(40deg); }
+/* 설정 팝업 */
+.settings-card { max-width: 340px; text-align: left; }
+.set-head { display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; font-weight: 900; margin-bottom: 16px; }
+.set-x { border: none; background: transparent; font-size: 1rem; color: var(--ink-soft); cursor: pointer; font-family: inherit; padding: 4px 6px; }
+.set-row { margin-bottom: 16px; }
+.set-row:last-child { margin-bottom: 0; }
+.set-label { font-size: 0.82rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
+.set-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.set-opt {
+  flex: 1; min-width: 96px; border: 2px solid transparent; background: var(--cream);
+  font-family: inherit; font-weight: 800; font-size: 0.88rem; color: var(--ink);
+  padding: 11px 10px; border-radius: 14px; cursor: pointer;
+}
+.set-opt.on { border-color: var(--pink-2); background: #fff0f7; }
+.set-opt:active { transform: scale(0.96); }
+.modal-card .set-full { width: 100%; margin: 0; }
 
 /* ─── 화면 ─── */
 .screen {

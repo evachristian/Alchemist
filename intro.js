@@ -185,43 +185,17 @@
   const F = s => `<g transform="translate(-157, 108) scale(1.38)">${s}</g>`;   // 요정 (오른쪽)
 
   // ─── 씬 정의 ────────────────────────────────────────────────
+  const IT = (k) => (window.I18N ? I18N.t(k) : k);
   const SCENES = [
-    {
-      art: () => bg() + P(princessEating()),
-      speaker: null,
-      text: '깊은 밤, 성의 한쪽 구석…\n공주님은 오늘도 야식을 즐기고 있었다.',
-    },
-    {
-      art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130),
-      speaker: '요정 대모',
-      text: '아니 대체 왜 그렇게 밤마다 야식을 드시는 거예요?',
-    },
-    {
-      art: () => bg() + P(princessFront('shy')) + F(fairy('idle')),
-      speaker: '공주',
-      text: '모르겠어. 자꾸 뭔가 먹고 싶어.\n정신적인 허기일지도…?',
-    },
-    {
-      art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120),
-      speaker: '요정 대모',
-      text: '이대로는 안되겠어요.\n제가 마법 솥을 드릴테니 연금술을 배워보시겠어요?',
-    },
-    {
-      art: () => bg() + P(princessFront('ask')) + F(fairy('idle')),
-      speaker: '공주',
-      text: '연금술? 내가 왜??',
-    },
-    {
-      art: () => bg() + P(princessFront('ask')) + F(fairy('cast')) + sparkles(9, 285, 340, 150),
-      speaker: '요정 대모',
-      text: '그야, 아름다움을 위해서죠.\n연금술을 배우시면 아름다움의 의미를 깨달으실 수 있게 되실 거예요.\n제가 도와드리죠.',
-    },
-    {
-      art: () => bg() + `<g class="i-teleport">${P(princessFront('scream'))}</g>` + F(fairy('cast')) + sparkles(14, 140, 380, 200),
-      speaker: '공주',
-      text: '꺄아아아─!!',
-    },
+    { art: () => bg() + P(princessEating()), sp: 'sp_narrator', key: 'intro_1' },
+    { art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130), sp: 'sp_fairy', key: 'intro_2' },
+    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3' },
+    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4' },
+    { art: () => bg() + P(princessFront('ask')) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5' },
+    { art: () => bg() + P(princessFront('ask')) + F(fairy('cast')) + sparkles(9, 285, 340, 150), sp: 'sp_fairy', key: 'intro_6' },
+    { art: () => bg() + `<g class="i-teleport">${P(princessFront('scream'))}</g>` + F(fairy('cast')) + sparkles(14, 140, 380, 200), sp: 'sp_princess', key: 'intro_7' },
   ];
+
 
   // ─── 렌더 / 진행 ─────────────────────────────────────────────
   let idx = 0, onDone = null;
@@ -248,9 +222,10 @@
       ${s.art()}
     </svg>`;
 
-    name.textContent = s.speaker || '';
-    name.style.display = s.speaker ? '' : 'none';
-    box.textContent = s.text;
+    const sp = IT(s.sp);
+    name.textContent = sp || '';
+    name.style.display = sp ? '' : 'none';
+    box.textContent = IT(s.key);
 
     // 진행 표시
     const dots = document.getElementById('introDots');

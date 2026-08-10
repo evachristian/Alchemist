@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260804c">
+<link rel="stylesheet" href="style.css?v=20260804d">
 </head>
 <body>
 
@@ -149,13 +149,13 @@
 <div id="intro">
   <div id="introStage">
     <div id="introArt"></div>
-    <button class="i-skip" onclick="window.Intro && window.Intro.finish()">건너뛰기 ✕</button>
+    <button class="i-skip" onclick="window.Intro && window.Intro.finish()" data-i18n="intro_skip">건너뛰기 ✕</button>
     <div id="introBox">
       <div id="introSpeaker"></div>
       <div id="introText"></div>
       <div id="introFoot">
         <div id="introDots"></div>
-        <button class="i-btn" onclick="window.Intro && window.Intro.next()">다음 ▸</button>
+        <button class="i-btn" onclick="window.Intro && window.Intro.next()" data-i18n="intro_next">다음 ▸</button>
       </div>
     </div>
   </div>
@@ -174,6 +174,7 @@
         </div>
         <button class="ap-help" onclick="apHelp(this)" aria-label="AP 안내">?</button>
       </div>
+      <button id="btnSettings" class="hdr-gear" onclick="openSettings()" aria-label="설정">⚙️</button>
       <div class="header-charm">
         <button id="hdrTier" class="hdr-tier" onclick="tierHelp(this)" aria-label="등급 안내">🌱</button>
         <span id="hdrCharm" class="hdr-charm">0</span>
@@ -186,15 +187,15 @@
 
   <!-- ── 채집 화면 ── -->
   <section id="screen-gather" class="screen">
-    <h2 class="screen-title">🌿 채집</h2>
-    <p class="screen-sub">장소를 눌러 연금술 재료를 모으세요.</p>
+    <h2 class="screen-title" data-i18n="screen_gather">🌿 채집</h2>
+    <p class="screen-sub" data-i18n="screen_gather_sub">장소를 눌러 연금술 재료를 모으세요.</p>
     <div id="spotList" class="spot-list"></div>
   </section>
 
   <!-- ── 공방 화면 ── -->
   <section id="screen-atelier" class="screen">
-    <h2 class="screen-title">⚗️ 공방</h2>
-    <p class="screen-sub">재료를 가마솥에 넣고 조합해 새 레시피를 발견하세요.</p>
+    <h2 class="screen-title" data-i18n="screen_atelier">⚗️ 공방</h2>
+    <p class="screen-sub" data-i18n="screen_atelier_sub">재료를 가마솥에 넣고 조합해 새 레시피를 발견하세요.</p>
 
     <div class="cauldron">
       <div class="cauldron-top">
@@ -299,20 +300,20 @@
         <div id="cauldronSlots" class="cauldron-slots"></div>
       </div>
       <div class="cauldron-actions">
-        <button class="btn btn-ghost" onclick="clearCauldron()">비우기</button>
-        <button class="btn btn-primary" onclick="brew()">✨ 조합하기 <span id="brewCost" class="btn-cost"></span></button>
+        <button class="btn btn-ghost" onclick="clearCauldron()" data-i18n="btn_clear">비우기</button>
+        <button class="btn btn-primary" onclick="brew()"><span data-i18n="btn_brew">✨ 조합하기</span> <span id="brewCost" class="btn-cost"></span></button>
       </div>
     </div>
 
     <h3 class="mini-title bag-toggle" onclick="toggleBag()">
-      <span>🎒 채집 가방</span>
+      <span data-i18n="bag_title">🎒 채집 가방</span>
       <span id="bagCount" class="bag-count"></span>
       <span id="bagChevron" class="bag-chevron">▸</span>
     </h3>
     <div id="ingredientBag" class="ingredient-bag"></div>
 
     <div class="recipe-book-head">
-      <h3 class="mini-title">📖 레시피 북</h3>
+      <h3 class="mini-title" data-i18n="recipe_book">📖 레시피 북</h3>
       <span id="recipeProgress" class="recipe-progress">0 / 0</span>
     </div>
     <div id="recipeBook" class="recipe-book"></div>
@@ -321,51 +322,51 @@
   <!-- ── 쇼케이스 화면 ── -->
   <section id="screen-showcase" class="screen active">
     <div class="room-head">
-      <h2 class="screen-title">✨ 마이 룸</h2>
+      <h2 class="screen-title" data-i18n="screen_room">✨ 마이 룸</h2>
       <button class="icon-btn" onclick="askResetAppearance()" aria-label="외형 초기화" title="외형 초기화">↺</button>
     </div>
 
     <div id="charStage" class="char-stage"></div>
 
     <div class="stat-row">
-      <div class="stat-box"><div class="stat-label">✨ 비주얼</div><div id="statBeauty" class="stat-val">0</div></div>
-      <div class="stat-box"><div class="stat-label">💖 아우라</div><div id="statCharm" class="stat-val">0</div></div>
+      <div class="stat-box"><div class="stat-label" data-i18n="stat_visual">✨ 비주얼</div><div id="statBeauty" class="stat-val">0</div></div>
+      <div class="stat-box"><div class="stat-label" data-i18n="stat_aura">💖 아우라</div><div id="statCharm" class="stat-val">0</div></div>
       <div class="stat-box highlight" onclick="tierHelp(this)">
-        <div class="stat-label"><span id="showcaseTier" class="tier-ic">🌱</span> 매력 총합</div>
+        <div class="stat-label"><span id="showcaseTier" class="tier-ic">🌱</span> <span id="tierName" class="tier-name"></span> <span data-i18n="stat_total">매력 총합</span></div>
         <div id="statTotal" class="stat-val">0</div>
       </div>
     </div>
 
-    <button class="btn btn-flex" onclick="flexCharm()">📢 매력 과시</button>
+    <button class="btn btn-flex" onclick="flexCharm()" data-i18n="flex_btn">📢 매력 과시</button>
 
     <!-- 나의 방 하위 탭 -->
     <div class="room-tabs">
-      <button class="room-tab active" data-rtab="clothes" onclick="setRoomTab('clothes')">👗 옷</button>
-      <button class="room-tab" data-rtab="potions" onclick="setRoomTab('potions')">🧴 물약</button>
-      <button class="room-tab" data-rtab="creatures" onclick="setRoomTab('creatures')">🦋 크리처</button>
+      <button class="room-tab active" data-rtab="clothes" onclick="setRoomTab('clothes')" data-i18n="room_clothes">👗 옷</button>
+      <button class="room-tab" data-rtab="potions" onclick="setRoomTab('potions')" data-i18n="room_potions">🧴 물약</button>
+      <button class="room-tab" data-rtab="creatures" onclick="setRoomTab('creatures')" data-i18n="room_creatures">🦋 크리처</button>
     </div>
 
     <div id="roomPanel-clothes" class="room-panel active">
       <div id="wardrobe" class="wardrobe"></div>
-      <div class="hint hint-block">👆 눌러서 갈아입기</div>
+      <div class="hint hint-block" data-i18n="hint_dress">👆 눌러서 갈아입기</div>
     </div>
     <div id="roomPanel-potions" class="room-panel">
       <div id="potionShelf" class="potion-shelf"></div>
-      <div id="potionHint" class="hint hint-block">👆 눌러서 마시기</div>
+      <div id="potionHint" class="hint hint-block" data-i18n="hint_drink">👆 눌러서 마시기</div>
     </div>
     <div id="roomPanel-creatures" class="room-panel">
       <div id="creatureCollection" class="creature-collection"></div>
     </div>
 
     <!-- 임시(출시 버전에서 제거): AP 충전 테스트 버튼 -->
-    <button class="btn btn-dev" onclick="fillEnergy()">⚡ AP 1000 충전 (임시)</button>
+    <button class="btn btn-dev" onclick="fillEnergy()" data-i18n="dev_fill_ap">⚡ AP 1000 충전 (임시)</button>
   </section>
 
   <!-- ── 하단 탭 ── -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="showcase"><span class="tab-icon">✨</span>마이 룸</button>
-    <button class="tab-btn" data-tab="atelier"><span class="tab-icon">⚗️</span>공방</button>
-    <button class="tab-btn" data-tab="gather"><span class="tab-icon">🌿</span>채집</button>
+    <button class="tab-btn active" data-tab="showcase"><span class="tab-icon">✨</span><span data-i18n="tab_showcase">마이 룸</span></button>
+    <button class="tab-btn" data-tab="atelier"><span class="tab-icon">⚗️</span><span data-i18n="tab_atelier">공방</span></button>
+    <button class="tab-btn" data-tab="gather"><span class="tab-icon">🌿</span><span data-i18n="tab_gather">채집</span></button>
   </nav>
 </div>
 
@@ -373,7 +374,27 @@
 <div id="brewModal" class="modal">
   <div class="modal-card">
     <div id="brewModalBody"></div>
-    <button class="btn btn-primary" onclick="closeBrewModal()">확인</button>
+    <button class="btn btn-primary" onclick="closeBrewModal()" data-i18n="btn_ok">확인</button>
+  </div>
+</div>
+
+<!-- ── 설정 팝업 (바깥 터치 = 닫기) ── -->
+<div id="settingsModal" class="modal" onclick="if(event.target===this) closeSettings()">
+  <div class="modal-card settings-card">
+    <div class="set-head">
+      <span data-i18n="settings">⚙️ 설정</span>
+      <button class="set-x" onclick="closeSettings()" aria-label="닫기">✕</button>
+    </div>
+    <!-- 설정 항목은 계속 추가 가능 -->
+    <div class="set-row">
+      <div class="set-label" data-i18n="setting_lang">언어 설정</div>
+      <div id="setLangList" class="set-opts"></div>
+    </div>
+    <div class="set-row">
+      <button class="btn btn-dev set-full" onclick="replayIntro()">
+        <span data-i18n="setting_intro_replay">튜토리얼 인트로 다시보기</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -382,8 +403,8 @@
   <div class="modal-card">
     <div id="confirmText" class="confirm-text">정말로 진행할까요?</div>
     <div class="confirm-actions">
-      <button class="btn btn-ghost" onclick="closeConfirm()">취소</button>
-      <button class="btn btn-primary" onclick="confirmYes()">확인</button>
+      <button class="btn btn-ghost" onclick="closeConfirm()" data-i18n="btn_cancel">취소</button>
+      <button class="btn btn-primary" onclick="confirmYes()" data-i18n="btn_ok">확인</button>
     </div>
   </div>
 </div>
@@ -391,10 +412,11 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="intro.js?v=20260804c"></script>
-<script src="data.js?v=20260804c"></script>
-<script src="avatar.js?v=20260804c"></script>
-<script src="sfx.js?v=20260804c"></script>
-<script src="game.js?v=20260804c"></script>
+<script src="i18n.js?v=20260804d"></script>
+<script src="intro.js?v=20260804d"></script>
+<script src="data.js?v=20260804d"></script>
+<script src="avatar.js?v=20260804d"></script>
+<script src="sfx.js?v=20260804d"></script>
+<script src="game.js?v=20260804d"></script>
 </body>
 </html>

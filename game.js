@@ -4,6 +4,11 @@
 const D = window.GameData;
 const SAVE_KEY = 'dieter_alchemist_save_v1';
 
+// ─── i18n 단축 헬퍼 (i18n.js 없으면 한국어 원문 유지) ───
+const T  = (k, v) => (window.I18N ? I18N.t(k, v) : k);
+const N  = (id, ko) => (window.I18N ? I18N.n(id, ko) : ko);   // 데이터 이름
+const TN = ko => (window.I18N ? I18N.n(ko, ko) : ko);          // 등급 이름
+
 // ─── 상태 ───
 const defaultState = () => ({
   inventory: {},          // { ingredientId: count }
@@ -143,12 +148,12 @@ function renderEnergy() {
   if (text) text.textContent = `${cur}/${cap}`;
 }
 
-function apHelp(el) { toast('AP는 하루에 한 번 오전 12시에 초기화 됩니다.', el); }
+function apHelp(el) { toast(T('ap_help'), el); }
 
 // 등급 아이콘 안내 — "○○ 단계"
 function tierHelp(el) {
   const tier = D.getTier(totalCharm());
-  toast(`${tier.title} 단계`, el);
+  toast(T('tier_stage', { tier: TN(tier.title) }), el);
 }
 
 // ─── 글로벌 시계 (한국 UTC+9 / UTC-7) ───
@@ -164,7 +169,7 @@ function zoneTime(offsetHours) {
 }
 function renderClock() {
   const a = document.getElementById('clockKST');
-  if (a) a.textContent = `UTC+09:00 (한국) ${zoneTime(9)}`;
+  if (a) a.textContent = `UTC+09:00 (${T('tz_kr')}) ${zoneTime(9)}`;
 }
 
 // 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
@@ -192,7 +197,7 @@ function switchTab(tab) {
 // ═══════════════════════════════════════════════════════════════
 function gather(spotId) {
   if (!spendEnergy(D.ENERGY.cost.gather)) {
-    toast('에너지가 부족해요 ⚡ 자정에 충전돼요');
+    toast(T('no_energy'));
     return;
   }
   const id = weightedPick(spotId);
@@ -200,7 +205,7 @@ function gather(spotId) {
   S.gathered++;
   save();
   const ing = D.INGREDIENTS[id];
-  toast(`${ing.emoji} ${ing.name} 획득!`);
+  toast(T('got_item', { emoji: ing.emoji, name: N(ing.id, ing.name) }));
   // 채집 애니메이션
   const card = document.querySelector(`.spot-card[data-spot="${spotId}"]`);
   if (card) { card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop'); }
@@ -211,9 +216,9 @@ function gather(spotId) {
 //  공방 / 가마솥 (Atelier)
 // ═══════════════════════════════════════════════════════════════
 function addToCauldron(id) {
-  if (S.cauldron.length >= 3) { toast('가마솥이 가득 찼어요 (최대 3개)'); return; }
+  if (S.cauldron.length >= 3) { toast(T('cauldron_full')); return; }
   if (invCount(id) - S.cauldron.filter(x => x === id).length <= 0) {
-    toast('재료가 부족해요'); return;
+    toast(T('not_enough_mat')); return;
   }
   S.cauldron.push(id);
   save(); render();
@@ -235,9 +240,9 @@ function applyBagState() {
 }
 
 function brew() {
-  if (S.cauldron.length < 2) { toast('재료를 2개 이상 넣어주세요'); return; }
+  if (S.cauldron.length < 2) { toast(T('need_two')); return; }
   if (!spendEnergy(D.ENERGY.cost.brew)) {
-    toast('에너지가 부족해요 ⚡ 자정에 충전돼요');
+    toast(T('no_energy'));
     return;
   }
   // 재료 소모
@@ -276,7 +281,7 @@ function drinkPotion(potionId) {
   S.stats.beauty += r.result.beauty || 0;
   S.stats.charm  += r.result.charm  || 0;
   save();
-  toast(`${r.result.emoji} ${r.result.name} 사용! ✨비주얼 +${r.result.beauty} 💖아우라 +${r.result.charm}`);
+  toast(T('drank', { emoji: r.result.emoji, name: N(r.result.id, r.result.name), b: r.result.beauty, c: r.result.charm }));
   render();
 }
 
@@ -289,15 +294,15 @@ function showBrewResult(result, isNew) {
   const success = result.kind !== 'sludge';
   let statLine = '';
   if (result.kind === 'potion') {
-    statLine = `<div class="brew-stats">✨ 비주얼 +${result.beauty}　💖 아우라 +${result.charm}</div>`;
+    statLine = `<div class="brew-stats">${T('brew_stat', { b: result.beauty, c: result.charm })}</div>`;
   } else if (result.kind === 'creature') {
-    statLine = `<div class="brew-stats">🌟 전시 매력 +${result.charmBonus}</div>`;
+    statLine = `<div class="brew-stats">${T('brew_creature', { n: result.charmBonus })}</div>`;
   }
   body.innerHTML = `
-    ${isNew ? '<div class="brew-new">🎉 NEW! 레시피 발견</div>' : ''}
+    ${isNew ? `<div class="brew-new">${T('brew_new')}</div>` : ''}
     <div class="brew-emoji ${success ? 'pop' : ''}">${result.emoji}</div>
-    <div class="brew-name">${result.name}</div>
-    <div class="brew-desc">${result.desc}</div>
+    <div class="brew-name">${N(result.id, result.name)}</div>
+    <div class="brew-desc">${N(result.id + '_desc', result.desc)}</div>
     ${statLine}
   `;
   modal.classList.add('show');
@@ -336,11 +341,11 @@ function renderGather() {
       <div class="spot-card ${canGather ? '' : 'low-energy'}" data-spot="${spot.id}" onclick="gather('${spot.id}')">
         <div class="spot-emoji">${spot.emoji}</div>
         <div class="spot-info">
-          <div class="spot-name">${spot.name}</div>
-          <div class="spot-desc">${spot.desc}</div>
+          <div class="spot-name">${N(spot.id, spot.name)}</div>
+          <div class="spot-desc">${N(spot.id + '_desc', spot.desc)}</div>
           <div class="spot-pool">${chips}</div>
         </div>
-        <div class="spot-go">채집 <span class="cost-tag">⚡${cost}</span></div>
+        <div class="spot-go">${T('gather_go')} <span class="cost-tag">⚡${cost}</span></div>
       </div>`;
   }).join('');
 }
@@ -377,7 +382,7 @@ function renderAtelier() {
       return `
         <div class="ing-chip ${avail <= 0 ? 'disabled' : ''}" onclick="addToCauldron('${id}')">
           <span class="ing-emoji">${ing.emoji}</span>
-          <span class="ing-name">${ing.name}</span>
+          <span class="ing-name">${N(ing.id, ing.name)}</span>
           <span class="ing-count">×${avail}</span>
         </div>`;
     }).join('');
@@ -385,7 +390,7 @@ function renderAtelier() {
 
   // 채집 가방 접힘/펼침 상태 반영
   const bagCount = document.getElementById('bagCount');
-  if (bagCount) bagCount.textContent = ids.length ? `${ids.length}종` : '비어있음';
+  if (bagCount) bagCount.textContent = ids.length ? T('bag_kinds', { n: ids.length }) : T('bag_empty');
   applyBagState();
 
   // 레시피 북
@@ -397,7 +402,7 @@ function renderAtelier() {
       return `<div class="recipe-row">
         <span class="recipe-in">${inputs}</span>
         <span class="recipe-arrow">→</span>
-        <span class="recipe-out">${r.result.emoji} ${r.result.name}</span>
+        <span class="recipe-out">${r.result.emoji} ${N(r.result.id, r.result.name)}</span>
       </div>`;
     }
     return `<div class="recipe-row locked">
@@ -440,6 +445,8 @@ function renderShowcase() {
   document.getElementById('statCharm').textContent = S.stats.charm;
   document.getElementById('statTotal').textContent = total;
   document.getElementById('showcaseTier').textContent = tier.emoji;  // 아이콘만
+  const tierNameEl = document.getElementById('tierName');
+  if (tierNameEl) tierNameEl.textContent = T('tier_stage', { tier: TN(tier.title) });
 
   // 보유 물약
   const potEl = document.getElementById('potionShelf');
@@ -447,17 +454,17 @@ function renderShowcase() {
   const potionHint = document.getElementById('potionHint');
   if (potionHint) potionHint.style.display = pids.length === 0 ? 'none' : 'block';
   if (pids.length === 0) {
-    potEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">아직 소유한 물약이 없어요. 공방에서 물약을 만들 수 있어요.</div>`;
+    potEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">${T('empty_potions')}</div>`;
   } else {
     potEl.innerHTML = pids.map(pid => {
       const r = D.RECIPES.find(x => x.result.id === pid);
       if (!r) return '';
       return `<div class="potion-card" onclick="drinkPotion('${pid}')">
         <div class="potion-emoji">${r.result.emoji}</div>
-        <div class="potion-name">${r.result.name}</div>
+        <div class="potion-name">${N(r.result.id, r.result.name)}</div>
         <div class="potion-eff">✨+${r.result.beauty} 💖+${r.result.charm}</div>
         <div class="potion-count">×${S.potions[pid]}</div>
-        <div class="potion-use">마시기</div>
+        <div class="potion-use">${T('hint_drink').replace('👆 ','')}</div>
       </div>`;
     }).join('');
   }
@@ -465,7 +472,7 @@ function renderShowcase() {
   // 크리처 컬렉션
   const colEl = document.getElementById('creatureCollection');
   if (S.creatures.length === 0) {
-    colEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">아직 소유한 크리처가 없어요. 공방에서 크리처를 만들 수 있어요.</div>`;
+    colEl.innerHTML = `<div class="empty-hint clickable" onclick="switchTab('atelier')">${T('empty_creatures')}</div>`;
   } else {
     const counts = {};
     S.creatures.forEach(c => counts[c] = (counts[c] || 0) + 1);
@@ -474,7 +481,7 @@ function renderShowcase() {
       if (!r) return '';
       return `<div class="creature-card">
         <div class="creature-emoji">${r.result.emoji}</div>
-        <div class="creature-name">${r.result.name}</div>
+        <div class="creature-name">${N(r.result.id, r.result.name)}</div>
         <div class="creature-eff">💖+${r.result.charmBonus}</div>
         ${counts[cid] > 1 ? `<div class="creature-count">×${counts[cid]}</div>` : ''}
       </div>`;
@@ -509,7 +516,7 @@ function isOwned(slot, it) {
 function equip(slot, id) {
   const it = (D.WARDROBE[slot] || []).find(x => x.id === id);
   if (!it) return;
-  if (!isOwned(slot, it)) { toast('아직 잠긴 아이템이에요 🔒 계속 플레이하면 획득해요!'); return; }
+  if (!isOwned(slot, it)) { toast(T('locked_item')); return; }
   // 상·하의를 고르면 원피스는 벗고, 원피스를 고르면 그대로 (렌더에서 상하의 무시)
   if (slot === 'top' || slot === 'bottom') S.outfit.dress = 'dress_none';
   S.outfit[slot] = id;
@@ -526,7 +533,7 @@ function unlockCosmetic(id) {
     S.unlocked.push(id);
     save();
     wardrobeTab = m.slot;
-    toast(`🎁 새 아이템 획득: ${it.name}!`);
+    toast(T('unlocked', { name: N(it.id, it.name) }));
     if (currentTab === 'showcase') renderShowcase();
     return true;
   }
@@ -539,7 +546,7 @@ function unlockRandom() {
   const locked = [];
   D.WARDROBE_SLOTS.filter(m => m.gated).forEach(m =>
     (D.WARDROBE[m.slot] || []).forEach(it => { if (!isOwned(m.slot, it)) locked.push(it.id); }));
-  if (!locked.length) { toast('모든 커스터마이징을 획득했어요! 🎉'); return; }
+  if (!locked.length) { toast(T('all_unlocked')); return; }
   unlockCosmetic(locked[Math.floor(Math.random() * locked.length)]);
 }
 
@@ -552,7 +559,7 @@ function renderWardrobe() {
   const tabs = D.WARDROBE_SLOTS.map(m => {
     const dimmed = dressed && (m.slot === 'top' || m.slot === 'bottom');
     return `<button class="wr-tab ${wardrobeTab === m.slot ? 'active' : ''} ${dimmed ? 'dim' : ''}"
-      onclick="setWardrobeTab('${m.slot}')">${m.emoji} ${m.label}</button>`;
+      onclick="setWardrobeTab('${m.slot}')">${m.emoji} ${N(m.slot, m.label)}</button>`;
   }).join('');
 
   const list = D.WARDROBE[wardrobeTab] || [];
@@ -565,7 +572,7 @@ function renderWardrobe() {
     else ic = `<span class="wr-swatch" style="background:${it.color || '#ccc'}"></span>`;
     const lock = owned ? '' : '<span class="wr-lock">🔒</span>';
     return `<button class="wr-item ${on ? 'on' : ''} ${owned ? '' : 'locked'}" onclick="equip('${wardrobeTab}','${it.id}')">
-      <span class="wr-ic">${ic}${lock}</span><span class="wr-nm">${it.name}</span></button>`;
+      <span class="wr-ic">${ic}${lock}</span><span class="wr-nm">${N(it.id, it.name)}</span></button>`;
   }).join('');
 
   // 잠금 슬롯이면 보유 현황 + 획득 안내
@@ -573,12 +580,12 @@ function renderWardrobe() {
   if (meta && meta.gated) {
     const total = list.length, have = list.filter(it => isOwned(wardrobeTab, it)).length;
     foot = `<div class="wr-foot">
-      <span class="wr-count">보유 ${have} / ${total}</span>
-      <button class="wr-gift" onclick="unlockRandom()">🎁 랜덤 획득 (테스트)</button>
+      <span class="wr-count">${T('wr_owned', { have: have, total: total })}</span>
+      <button class="wr-gift" onclick="unlockRandom()">${T('wr_gift')}</button>
     </div>`;
   }
   const hint = dressed && (wardrobeTab === 'top' || wardrobeTab === 'bottom')
-    ? `<div class="wr-hint">원피스를 입는 중이에요. 상·하의를 고르면 원피스가 벗겨져요.</div>` : '';
+    ? `<div class="wr-hint">${T('dress_hint')}</div>` : '';
 
   el.innerHTML = `<div class="wr-tabs">${tabs}</div>${hint}<div class="wr-items">${items}</div>${foot}`;
 }
@@ -587,14 +594,43 @@ function renderWardrobe() {
 function flexCharm() {
   const total = totalCharm();
   const tier = D.getTier(total);
-  const text = `[다이어터 연금술사] 나의 매력 총합 ${total} — ${tier.emoji} ${tier.title} 등급!`;
+  const text = T('share_text', { total: total, emoji: tier.emoji, tier: TN(tier.title) });
   if (navigator.share) {
     navigator.share({ title: '다이어터 연금술사', text }).catch(() => {});
   } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => toast('매력 총합을 복사했어요! 📋'));
+    navigator.clipboard.writeText(text).then(() => toast(T('copied')));
   } else {
     toast(text);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  설정 팝업 (항목은 계속 추가 가능 / 터치 즉시 적용, 적용 버튼 없음)
+// ═══════════════════════════════════════════════════════════════
+function openSettings() {
+  renderSettings();
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+function renderSettings() {
+  const el = document.getElementById('setLangList');
+  if (!el || !window.I18N) return;
+  const cur = I18N.getLang();
+  el.innerHTML = I18N.langs().map(l =>
+    `<button class="set-opt ${l.code === cur ? 'on' : ''}" onclick="chooseLang('${l.code}')">${l.label}</button>`
+  ).join('');
+}
+function chooseLang(code) {
+  if (window.I18N) I18N.setLang(code);   // 즉시 적용
+  renderSettings();
+}
+// 임시: 튜토리얼 인트로 다시보기
+function replayIntro() {
+  closeSettings();
+  try { localStorage.removeItem(window.Intro ? Intro.SEEN_KEY : 'dieter_alchemist_intro_seen_v1'); } catch (e) {}
+  location.reload();
 }
 
 // ─── 확인 모달 (공용) ───
@@ -616,11 +652,11 @@ function confirmYes() {
 
 // ─── 외형 초기화 (착장을 기본값으로) ───
 function askResetAppearance() {
-  showConfirm('정말로 나의 외형을 초기화 하시겠습니까?', () => {
+  showConfirm(T('confirm_reset_look'), () => {
     S.outfit = { ...D.DEFAULT_OUTFIT };
     save();
     renderShowcase();
-    toast('외형을 초기화했어요 ✨');
+    toast(T('appearance_reset'));
   });
 }
 
@@ -631,22 +667,24 @@ function fillEnergy() {
   S.energyDay = dayKey();
   save();
   render();
-  toast('⚡ AP를 가득 채웠어요! (임시)');
+  toast(T('ap_filled'));
 }
 
 // ─── 초기화(디버그용) ───
 function resetGame() {
-  if (confirm('정말 처음부터 다시 시작할까요? 모든 진행이 사라집니다.')) {
+  showConfirm(T('confirm_restart'), () => {
     S = defaultState();
     save();
-    switchTab('gather');
-    toast('새로 시작합니다 🌱');
-  }
+    switchTab('showcase');
+    toast(T('restarted'));
+  });
 }
 
 // ─── 부팅 ───
 // (스플래시 표시/제거는 index.html 인라인 스크립트에서 처리)
+window.render = render;   // i18n에서 언어 변경 시 재렌더
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.I18N) I18N.apply();
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
   refreshEnergy();          // 접속 시 자정 롤오버 반영
