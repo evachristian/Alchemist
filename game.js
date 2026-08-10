@@ -616,8 +616,17 @@ function resetGame() {
   }
 }
 
+// ─── 스플래시 (총 2.5초 = 표시 0.9s + 페이드아웃 1.6s) ───
+function runSplash() {
+  const el = document.getElementById('splash');
+  if (!el) return;
+  setTimeout(() => el.classList.add('hide'), 900);
+  setTimeout(() => el.classList.add('done'), 2500);
+}
+
 // ─── 부팅 ───
 document.addEventListener('DOMContentLoaded', () => {
+  runSplash();
   document.querySelectorAll('.tab-btn').forEach(b =>
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
   refreshEnergy();          // 접속 시 자정 롤오버 반영

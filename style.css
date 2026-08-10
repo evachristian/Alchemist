@@ -34,6 +34,24 @@ body {
   position: relative;
 }
 
+/* ─── 스플래시 (첫 실행 인트로) ─── */
+.splash {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  background: #ffffff;
+  opacity: 1;
+  transition: opacity 1.6s ease;   /* 페이드아웃 1.6초 */
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+.splash.done { display: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; animation: splashIn 0.7s ease both; }
+@keyframes splashIn { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+.splash-logo { width: 168px; height: 168px; display: block; }
+.splash-name {
+  font-size: 1.06rem; font-weight: 700; letter-spacing: 0.06em;
+  color: #3f3a44; text-align: center;
+}
+
 /* ─── 상단바 (헤더 = AP + 등급) ─── */
 .topbar { position: sticky; top: 0; z-index: 20; }
 .app-header {
