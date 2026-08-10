@@ -77,6 +77,11 @@
       intro_6: '그야, 아름다움을 위해서죠.\n연금술을 배우시면 아름다움의 의미를 깨달으실 수 있게 되실 거예요.\n제가 도와드리죠.',
       intro_7: '꺄아아아─!!',
       tz_kr: '한국',
+      intro_auto: '자동', auto_on: '자동 재생 켬', auto_off: '자동 재생 끔',
+      intro_8: '',
+      intro_9: '이제부터 여기서 연금술을 배울 거예요.',
+      intro_10: '대체 여기가 어디야? 연금술, 그게 뭔데?',
+      intro_11: '이제 알게 되실 거예요.',
     },
     en: {
       tab_showcase: 'My Room', tab_atelier: 'Atelier', tab_gather: 'Gather',
@@ -129,6 +134,11 @@
       intro_6: 'For beauty, of course.\nLearn alchemy and you will discover what beauty truly means.\nI shall help you.',
       intro_7: 'Aaaaah─!!',
       tz_kr: 'Korea',
+      intro_auto: 'Auto', auto_on: 'Auto-play ON', auto_off: 'Auto-play OFF',
+      intro_8: '',
+      intro_9: "From now on, you'll learn alchemy here.",
+      intro_10: 'Where on earth am I? And what even is alchemy?',
+      intro_11: "You'll find out soon enough.",
     },
   };
 

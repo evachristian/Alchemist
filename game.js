@@ -682,7 +682,8 @@ function resetGame() {
 
 // ─── 부팅 ───
 // (스플래시 표시/제거는 index.html 인라인 스크립트에서 처리)
-window.render = render;   // i18n에서 언어 변경 시 재렌더
+window.render = render;
+window.switchTab = switchTab;   // 인트로 종료 후 탭 전환   // i18n에서 언어 변경 시 재렌더
 document.addEventListener('DOMContentLoaded', () => {
   if (window.I18N) I18N.apply();
   document.querySelectorAll('.tab-btn').forEach(b =>

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260804d">
+<link rel="stylesheet" href="style.css?v=20260804j">
 </head>
 <body>
 
@@ -121,6 +121,21 @@
     box-shadow: 0 4px 12px rgba(255,150,190,0.4);
   }
   #intro .i-btn:active { transform: scale(0.96); }
+  /* 자동 재생 버튼 (다음 버튼 왼쪽) */
+  #intro .i-actions { display: flex; align-items: center; gap: 10px; }
+  #intro .i-auto {
+    height: 44px; border-radius: 999px; padding: 0 14px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85); font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  #intro .i-auto:active { transform: scale(0.92); }
+  #intro .i-auto-svg { width: 20px; height: 20px; display: block; }
+  #intro .i-auto-lb { font-size: 0.82rem; font-weight: 800; }
+  /* 켜짐: 화살표가 빙글빙글 */
+  #intro .i-auto.on { background: #ffd076; border-color: #ffd076; color: #4a3a24; }
+  #intro .i-auto.on .i-auto-svg { animation: iSpin 1.6s linear infinite; }
+  @keyframes iSpin { to { transform: rotate(360deg); } }
   /* 건너뛰기: 오른쪽 상단 */
   #intro .i-skip {
     position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 3;
@@ -139,6 +154,18 @@
   @keyframes iSpark { 0%,100% { opacity: 0.15; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.15); } }
   #intro .i-munch { animation: iMunch 0.9s ease-in-out infinite; }
   @keyframes iMunch { 0%,100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+  #intro .i-bubble { animation: iBubble 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom left; }
+  @keyframes iBubble { 0%,100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.06) translateY(-3px); } }
+  #intro .i-vanish { animation: iVanish 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+  @keyframes iVanish { 0% { opacity: 1; transform: scale(1); } 70% { opacity: 0.25; transform: scale(0.82) translateY(-16px); } 100% { opacity: 0; transform: scale(0.7) translateY(-28px); } }
+  #intro .i-tele-fx { animation: iTeleFx 1.6s ease-in-out infinite; }
+  @keyframes iTeleFx { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+  #intro .i-rune { transform-box: fill-box; transform-origin: center; animation: iRune 6s linear infinite; }
+  @keyframes iRune { to { transform: rotate(360deg); } }
+  #intro .i-dizzy { transform-box: fill-box; transform-origin: center; animation: iDizzy 2.2s linear infinite; }
+  @keyframes iDizzy { to { transform: rotate(360deg); } }
+  #intro .i-cauldron { animation: iCauldron 0.7s cubic-bezier(.2,1.4,.5,1) both; transform-box: fill-box; transform-origin: center bottom; }
+  @keyframes iCauldron { 0% { opacity: 0; transform: scale(0.4) translateY(24px); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
   #intro .i-blush { animation: iBlush 2s ease-in-out infinite; }
   @keyframes iBlush { 0%,100% { opacity: 0.4; } 50% { opacity: 0.75; } }
   #intro .i-teleport { animation: iTele 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
@@ -155,7 +182,16 @@
       <div id="introText"></div>
       <div id="introFoot">
         <div id="introDots"></div>
-        <button class="i-btn" onclick="window.Intro && window.Intro.next()" data-i18n="intro_next">다음 ▸</button>
+        <div class="i-actions">
+          <button class="i-btn" onclick="window.Intro && window.Intro.next()" data-i18n="intro_next">다음 ▸</button>
+          <button id="introAuto" class="i-auto on" onclick="window.Intro && window.Intro.toggleAuto(this)" aria-label="자동 재생" title="자동 재생">
+            <svg viewBox="0 0 24 24" class="i-auto-svg" aria-hidden="true">
+              <path d="M12 4a8 8 0 1 1-7.5 5.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M12 1.6 L15.4 4.6 L12 7.6 Z" fill="currentColor"/>
+            </svg>
+            <span class="i-auto-lb" data-i18n="intro_auto">자동</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -412,11 +448,11 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="i18n.js?v=20260804d"></script>
-<script src="intro.js?v=20260804d"></script>
-<script src="data.js?v=20260804d"></script>
-<script src="avatar.js?v=20260804d"></script>
-<script src="sfx.js?v=20260804d"></script>
-<script src="game.js?v=20260804d"></script>
+<script src="i18n.js?v=20260804j"></script>
+<script src="intro.js?v=20260804j"></script>
+<script src="data.js?v=20260804j"></script>
+<script src="avatar.js?v=20260804j"></script>
+<script src="sfx.js?v=20260804j"></script>
+<script src="game.js?v=20260804j"></script>
 </body>
 </html>
