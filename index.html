@@ -17,6 +17,24 @@
 <body>
 
 <!-- ── 스플래시 (첫 실행 인트로) ── -->
+<!-- 스타일을 인라인으로 둬서 style.css 캐시/누락과 무관하게 항상 동작 -->
+<style>
+  #splash {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: #ffffff; opacity: 1;
+    transition: opacity 1.6s ease;
+  }
+  #splash.hide { opacity: 0; pointer-events: none; }
+  #splash.done { display: none !important; }
+  #splash .splash-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; animation: splashIn 0.7s ease both; }
+  @keyframes splashIn { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+  #splash .splash-logo { width: 168px; height: 168px; display: block; }
+  #splash .splash-name {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.06rem; font-weight: 700; letter-spacing: 0.06em; color: #3f3a44; text-align: center;
+  }
+</style>
 <div id="splash" class="splash">
   <div class="splash-inner">
     <svg class="splash-logo" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dream Syndicate Studio">
