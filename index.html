@@ -64,6 +64,19 @@
     <div class="splash-name">Dream Syndicate Studio</div>
   </div>
 </div>
+<script>
+  // 스플래시 제거도 인라인으로 — game.js 상태와 무관하게 항상 동작
+  // 총 2.5초: 0.9초 표시 → 1.6초 페이드아웃 → 완전 제거
+  (function () {
+    var el = document.getElementById('splash');
+    if (!el) return;
+    setTimeout(function () { el.classList.add('hide'); }, 900);
+    setTimeout(function () {
+      el.classList.add('done');
+      if (el.parentNode) el.parentNode.removeChild(el);  // DOM에서 완전 제거
+    }, 2500);
+  })();
+</script>
 
 <div class="app">
   <!-- ── 상단바 (헤더 + 에너지) ── -->
