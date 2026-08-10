@@ -63,11 +63,33 @@ function weightedPick(spot) {
 }
 
 // ─── 토스트 ───
+// anchor(요소)를 주면 그 아이콘 근처에 말풍선처럼 표시 → 가독성↑
+// (문구 길이가 늘어나도 UI와 겹치지 않도록 토스트로 처리)
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, anchor) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.classList.add('show');
+
+  if (anchor && anchor.getBoundingClientRect) {
+    const r = anchor.getBoundingClientRect();
+    el.classList.add('anchored');
+    el.style.visibility = 'hidden';
+    el.classList.add('show');
+    // 위치 계산 (화면 밖으로 나가지 않게 보정)
+    const tw = el.offsetWidth, th = el.offsetHeight, pad = 8;
+    let left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(pad, Math.min(left, window.innerWidth - tw - pad));
+    let top = r.bottom + 8;                       // 기본: 아이콘 아래
+    if (top + th > window.innerHeight - pad) top = r.top - th - 8;  // 넘치면 위로
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    el.style.visibility = '';
+  } else {
+    el.classList.remove('anchored');
+    el.style.left = ''; el.style.top = '';
+    el.classList.add('show');
+  }
+
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
 }
@@ -121,7 +143,13 @@ function renderEnergy() {
   if (text) text.textContent = `${cur}/${cap}`;
 }
 
-function apHelp() { toast('AP는 하루에 한 번 오전 12시에 초기화 됩니다.'); }
+function apHelp(el) { toast('AP는 하루에 한 번 오전 12시에 초기화 됩니다.', el); }
+
+// 등급 아이콘 안내 — "○○ 단계"
+function tierHelp(el) {
+  const tier = D.getTier(totalCharm());
+  toast(`${tier.title} 단계`, el);
+}
 
 // ─── 글로벌 시계 (한국 UTC+9 / UTC-7) ───
 // 낮(06~18시)=☀️ 해, 밤=🌙 달 로 오전/오후를 예쁘게 표시
@@ -294,8 +322,8 @@ function render() {
 function renderHeader() {
   const total = totalCharm();
   const tier = D.getTier(total);
-  document.getElementById('hdrTier').textContent = `${tier.emoji} ${tier.title}`;
-  document.getElementById('hdrCharm').textContent = `🌟 ${total}`;
+  document.getElementById('hdrTier').textContent = tier.emoji;   // 아이콘만 (문구는 토스트로)
+  document.getElementById('hdrCharm').textContent = total;       // 매력 총합 점수
 }
 
 function renderGather() {
@@ -411,7 +439,7 @@ function renderShowcase() {
   document.getElementById('statBeauty').textContent = S.stats.beauty;
   document.getElementById('statCharm').textContent = S.stats.charm;
   document.getElementById('statTotal').textContent = total;
-  document.getElementById('showcaseTier').textContent = `${tier.emoji} ${tier.title}`;
+  document.getElementById('showcaseTier').textContent = tier.emoji;  // 아이콘만
 
   // 보유 물약
   const potEl = document.getElementById('potionShelf');

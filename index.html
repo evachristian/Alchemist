@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260804b">
+<link rel="stylesheet" href="style.css?v=20260804c">
 </head>
 <body>
 
@@ -172,11 +172,11 @@
           <div id="enFill" class="en-fill"></div>
           <span id="enText" class="en-text">0/0</span>
         </div>
-        <button class="ap-help" onclick="apHelp()" aria-label="AP 안내">?</button>
+        <button class="ap-help" onclick="apHelp(this)" aria-label="AP 안내">?</button>
       </div>
       <div class="header-charm">
-        <span id="hdrTier" class="hdr-tier">🌱 새싹</span>
-        <span id="hdrCharm" class="hdr-charm">🌟 0</span>
+        <button id="hdrTier" class="hdr-tier" onclick="tierHelp(this)" aria-label="등급 안내">🌱</button>
+        <span id="hdrCharm" class="hdr-charm">0</span>
       </div>
     </header>
     <div class="clock-bar">
@@ -326,12 +326,14 @@
     </div>
 
     <div id="charStage" class="char-stage"></div>
-    <div id="showcaseTier" class="showcase-tier">🌱 새싹</div>
 
     <div class="stat-row">
       <div class="stat-box"><div class="stat-label">✨ 비주얼</div><div id="statBeauty" class="stat-val">0</div></div>
       <div class="stat-box"><div class="stat-label">💖 아우라</div><div id="statCharm" class="stat-val">0</div></div>
-      <div class="stat-box highlight"><div class="stat-label">🌟 매력 총합</div><div id="statTotal" class="stat-val">0</div></div>
+      <div class="stat-box highlight" onclick="tierHelp(this)">
+        <div class="stat-label"><span id="showcaseTier" class="tier-ic">🌱</span> 매력 총합</div>
+        <div id="statTotal" class="stat-val">0</div>
+      </div>
     </div>
 
     <button class="btn btn-flex" onclick="flexCharm()">📢 매력 과시</button>
@@ -389,10 +391,10 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="intro.js?v=20260804b"></script>
-<script src="data.js?v=20260804b"></script>
-<script src="avatar.js?v=20260804b"></script>
-<script src="sfx.js?v=20260804b"></script>
-<script src="game.js?v=20260804b"></script>
+<script src="intro.js?v=20260804c"></script>
+<script src="data.js?v=20260804c"></script>
+<script src="avatar.js?v=20260804c"></script>
+<script src="sfx.js?v=20260804c"></script>
+<script src="game.js?v=20260804c"></script>
 </body>
 </html>

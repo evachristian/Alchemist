@@ -99,8 +99,17 @@ body {
 .spot-card.low-energy { opacity: 0.6; }
 .spot-card.low-energy .spot-go { color: var(--pink-2); }
 .header-charm { display: flex; gap: 8px; align-items: center; flex: 0 0 auto; }
-.hdr-tier { font-size: 0.82rem; font-weight: 700; background: var(--lav); padding: 4px 10px; border-radius: 999px; }
-.hdr-charm { font-size: 0.9rem; font-weight: 800; background: var(--pink-2); color: #fff; padding: 4px 11px; border-radius: 999px; }
+/* 등급 아이콘 + 매력 총합을 한 덩어리로 */
+.header-charm { background: var(--lav); border-radius: 999px; padding: 3px 4px 3px 3px; gap: 4px; }
+.hdr-tier {
+  border: none; background: rgba(255,255,255,0.75); font-size: 1rem; line-height: 1;
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.hdr-tier:active { transform: scale(0.9); }
+.hdr-charm { font-size: 0.9rem; font-weight: 800; color: var(--ink); padding: 0 9px 0 3px; min-width: 20px; text-align: center; }
+.tier-ic { font-size: 0.95rem; }
+.stat-box.highlight { cursor: pointer; }
 
 /* ─── 화면 ─── */
 .screen {
@@ -404,3 +413,6 @@ body {
   white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
 }
 .toast.show { opacity: 0.95; transform: translateX(-50%) translateY(0); }
+/* 아이콘 옆에 붙는 토스트 (좌표는 JS가 지정) */
+.toast.anchored { bottom: auto; left: 0; transform: translateY(-6px); transform-origin: top center; }
+.toast.anchored.show { transform: translateY(0); }
