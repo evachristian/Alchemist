@@ -223,7 +223,8 @@
   // 요정 대모 (신데렐라풍: 하늘색 후드망토 + 지팡이)
   function fairy(pose) {
     // 완드: 손(302,268)을 축으로 회전 → 항상 손에 쥔 상태
-    const cast = pose === 'cast' || pose === 'castbig';
+    const tap = pose === 'tap';
+    const cast = pose === 'cast' || pose === 'castbig' || tap;
     // 표정: 기본은 걱정, 'smile'/'castbig'은 미소
     const happy = pose === 'smile' || pose === 'castbig';
     const face = happy
@@ -241,14 +242,17 @@
          <ellipse cx="313" cy="195" rx="5" ry="3.4" fill="#ffb0c4" opacity="0.6"/>
          <ellipse cx="347" cy="195" rx="5" ry="3.4" fill="#ffb0c4" opacity="0.6"/>
          <path d="M325,201 Q330,197 335,201" stroke="#c97b86" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-    const wand = `<g class="${cast ? 'i-wandcast' : ''}" transform="rotate(${cast ? -34 : -14} 302 268)">
+    // tap: 완드를 공주(왼쪽) 쪽으로 크게 기울여 '톡' 치는 자세
+    const wandRot = tap ? -62 : (cast ? -34 : -14);
+    const wandCls = tap ? 'i-wandtap' : (cast ? 'i-wandcast' : '');
+    const wand = `<g transform="rotate(${wandRot} 302 268)"><g class="${wandCls}">
         <rect x="300" y="188" width="4.6" height="88" rx="2.3" fill="#d8c49a"/>
         <path d="${star(302.3, 182, cast ? 11 : 9)}" fill="#fff3b0" stroke="#ffe07a" stroke-width="1.5"/>
         <!-- 쥔 손 -->
         <circle cx="302" cy="268" r="7.5" fill="${SKIN}"/>
         <path d="M296,264 q6,-2.5 12,0" stroke="${SKIN_SH}" stroke-width="3.4" fill="none" stroke-linecap="round"/>
         <path d="M296,270 q6,-2.5 12,0" stroke="${SKIN_SH}" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-      </g>`;
+      </g></g>`;
     return `<g>
       <ellipse cx="330" cy="288" rx="42" ry="7" fill="rgba(80,60,40,0.16)"/>
       <!-- 망토(넉넉) -->
@@ -306,22 +310,67 @@
     { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4' },
     { art: () => bg() + P(princessFront('ask', true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5' },
     { art: () => bg() + P(princessFront('ask')) + F(fairy('cast')) + sparkles(9, 285, 340, 150), sp: 'sp_fairy', key: 'intro_6' },
+    // 요정이 별 지팡이로 공주를 '톡' — 마법이 뻗어나감 (대사 없음, 짧게)
+    { art: () => bg() + P(princessFront('ask')) + F(fairy('tap')) + tapSpark(158, 420) + sparkles(8, 250, 400, 120),
+      sp: 'sp_narrator', key: 'intro_8', hold: 900 },
     // 텔레포트 시전 — 마법 강조 (빛기둥 + 마법진 + 반짝이)
     { art: () => bg() + teleportFx() + `<g class="i-vanish">${P(princessFront('scream'))}</g>` + F(fairy('cast')) + sparkles(16, 140, 380, 210),
       sp: 'sp_princess', key: 'intro_7' },
-    // 공주가 사라진 직후 (대사 없음) → 2초 뒤 자동으로 Scene #2
-    { art: () => bg() + teleportFx(true) + F(fairy('cast')) + sparkles(12, 140, 400, 200),
-      sp: 'sp_narrator', key: 'intro_8', hold: 2000 },
+    // 공주가 '펑!' 하고 사라진 직후 (대사 없음) → 2초 뒤 자동으로 Scene #2
+    { art: () => bg() + teleportFx(true) + burst(145, 400, 1.15) + F(fairy('cast')) + sparkles(12, 140, 400, 200),
+      sp: 'sp_narrator', key: 'intro_8', hold: 2000, flash: true },
 
     // ── Scene #2: 어둡고 허름한 연금술 공방 ──
-    { art: () => bg2() + P(princessFront('dizzy')) + F(fairy('idle')) + sparkles(6, 250, 380, 150),
-      sp: 'sp_fairy', key: 'intro_9' },
+    // Scene #2 첫 컷: '펑!' 하고 나타남 + 화면 전환 플래시
+    { art: () => bg2() + burst(145, 400, 1.15) + P(princessFront('dizzy')) + F(fairy('idle')) + sparkles(6, 250, 380, 150),
+      sp: 'sp_fairy', key: 'intro_9', flash: true },
     { art: () => bg2() + P(princessFront('dizzy')) + F(fairy('idle')),
       sp: 'sp_princess', key: 'intro_10' },
     // 요정이 마법으로 큰 가마솥을 만든다 → 가마솥 등장 + 미소
     { art: () => bg2() + P(princessFront('ask')) + F(fairy('castbig')) + bigCauldron() + sparkles(12, 300, 470, 170),
       sp: 'sp_fairy', key: 'intro_11' },
   ];
+
+  // 지팡이 끝에서 튀는 마법 스파크 (톡 치는 지점)
+  function tapSpark(cx, cy) {
+    let rays = '';
+    for (let i = 0; i < 8; i++) {
+      const a = (i * 45) * Math.PI / 180;
+      rays += `<line x1="${(cx + Math.cos(a) * 9).toFixed(1)}" y1="${(cy + Math.sin(a) * 9).toFixed(1)}"
+        x2="${(cx + Math.cos(a) * 20).toFixed(1)}" y2="${(cy + Math.sin(a) * 20).toFixed(1)}"
+        stroke="#fff3b0" stroke-width="2.6" stroke-linecap="round"/>`;
+    }
+    return `<g class="i-tapspark">
+      <circle cx="${cx}" cy="${cy}" r="11" fill="#fff7e0" opacity="0.9"/>
+      <circle cx="${cx}" cy="${cy}" r="18" fill="none" stroke="#ffe07a" stroke-width="3"/>
+      ${rays}
+      <path d="${star(cx + 16, cy - 12, 4)}" fill="#fff3b0"/>
+      <path d="${star(cx - 14, cy + 10, 3.4)}" fill="#fff3b0"/>
+    </g>`;
+  }
+
+  // 펑! 파열 이펙트 — cx,cy 중심으로 확산하는 링 + 방사선 + 파편
+  function burst(cx, cy, scale) {
+    const k = scale || 1;
+    let rays = '', bits = '';
+    for (let i = 0; i < 12; i++) {
+      const a = (i * 30) * Math.PI / 180;
+      const r1 = 26 * k, r2 = 52 * k;
+      rays += `<line x1="${(cx + Math.cos(a) * r1).toFixed(1)}" y1="${(cy + Math.sin(a) * r1).toFixed(1)}"
+        x2="${(cx + Math.cos(a) * r2).toFixed(1)}" y2="${(cy + Math.sin(a) * r2).toFixed(1)}"
+        stroke="#fff3b0" stroke-width="${3 * k}" stroke-linecap="round"/>`;
+    }
+    for (let i = 0; i < 10; i++) {
+      const a = (i * 36 + 12) * Math.PI / 180, r = (44 + (i % 3) * 12) * k;
+      bits += `<path d="${star(cx + Math.cos(a) * r, cy + Math.sin(a) * r, (3 + (i % 3)) * k)}" fill="#ffe6a8"/>`;
+    }
+    return `<g class="i-burst">
+      <circle cx="${cx}" cy="${cy}" r="${30 * k}" fill="none" stroke="#fff" stroke-width="${5 * k}" opacity="0.95"/>
+      <circle cx="${cx}" cy="${cy}" r="${16 * k}" fill="#fff7e0" opacity="0.9"/>
+      <g class="i-burst-rays">${rays}</g>
+      <g class="i-burst-bits">${bits}</g>
+    </g>`;
+  }
 
   // 텔레포트 연출 (빛기둥 + 바닥 마법진). gone=true 면 공주가 사라진 뒤
   function teleportFx(gone) {
@@ -341,16 +390,21 @@
   // ─── 렌더 / 진행 ─────────────────────────────────────────────
   let idx = 0, onDone = null;
   let auto = true, autoTimer = null;   // 자동 재생 기본 켜짐
+  let isReplay = false, prevTab = null;  // 다시보기 여부 / 재생 전 화면
+  let artFlip = false;                   // 아트 크로스페이드 레이어 토글
+
+  // 대사 재생 배속 (1.25 = 1.25배 빠르게)
+  const SPEED = 1.25;
 
   // 대사를 보이스로 읽는다고 가정한 표시 시간 (ms)
-  // 한국어/영어 모두 자연스럽게: 기본 1.5초 + 글자수 비례, 최소 2.2초 ~ 최대 9초
+  // 한국어/영어 모두 자연스럽게: 기본 1.5초 + 글자수 비례, 최소 2.2초 ~ 최대 9초 (배속 적용)
   function readMs(text) {
     const t = String(text || '');
     const hasKo = /[가-힣]/.test(t);
     const perChar = hasKo ? 105 : 62;          // 한글은 글자당 정보량이 커서 길게
     const lines = (t.match(/\n/g) || []).length; // 줄바꿈마다 호흡
     const ms = 1500 + t.length * perChar + lines * 350;
-    return Math.max(2200, Math.min(9000, ms));
+    return Math.max(2200, Math.min(9000, ms)) / SPEED;
   }
 
   function paint() {
@@ -360,7 +414,7 @@
     const name = document.getElementById('introSpeaker');
     if (!art || !box) return;
 
-    art.innerHTML = `<svg viewBox="0 0 400 711" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" class="intro-svg">
+    const svgMarkup = `<svg viewBox="0 0 400 711" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" class="intro-svg">
       <defs>
         <linearGradient id="iWall" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#e9d8bd"/><stop offset="1" stop-color="#cfae83"/>
@@ -394,6 +448,19 @@
       ${s.art()}
     </svg>`;
 
+    // 두 레이어를 번갈아 쓰며 크로스페이드 → 어두워졌다 밝아지는 끊김 제거
+    let layers = art.querySelectorAll('.i-layer');
+    if (layers.length < 2) {
+      art.innerHTML = '<div class="i-layer"></div><div class="i-layer"></div>';
+      layers = art.querySelectorAll('.i-layer');
+    }
+    const nextLayer = layers[artFlip ? 0 : 1];
+    const currLayer = layers[artFlip ? 1 : 0];
+    nextLayer.innerHTML = svgMarkup;
+    nextLayer.classList.add('on');
+    currLayer.classList.remove('on');
+    artFlip = !artFlip;
+
     const sp = IT(s.sp);
     name.textContent = sp || '';
     name.style.display = sp ? '' : 'none';
@@ -405,9 +472,15 @@
       dots.innerHTML = SCENES.map((_, i) =>
         `<span class="i-dot ${i === idx ? 'on' : ''}"></span>`).join('');
     }
-    // 페이드 인
-    const stage = document.getElementById('introStage');
-    if (stage) { stage.classList.remove('i-in'); void stage.offsetWidth; stage.classList.add('i-in'); }
+    // 장면 전환 플래시 (텔레포트 전/후)
+    if (s.flash) {
+      const fl = document.getElementById('introFlash');
+      if (fl) { fl.classList.remove('on'); void fl.offsetWidth; fl.classList.add('on'); }
+    }
+
+    // 대사만 부드럽게 전환 (무대 전체를 페이드하지 않음)
+    const boxEl = document.getElementById('introBox');
+    if (boxEl) { boxEl.classList.remove('i-in'); void boxEl.offsetWidth; boxEl.classList.add('i-in'); }
 
     // hold 씬: 자동 재생과 무관하게 지정 시간 뒤 자동 진행 (조작 UI 숨김)
     const foot = document.getElementById('introFoot');
@@ -456,8 +529,11 @@
     setTimeout(() => {
       el.style.display = 'none';     // 제거하지 않고 숨김 → 다시보기 가능
       el.classList.remove('hide');
-      // 인트로 종료 → 공방 탭으로
-      if (typeof window.switchTab === 'function') window.switchTab('atelier');
+      // 최초 진입이면 시나리오대로 '공방', 다시보기면 보던 화면으로 복귀
+      if (typeof window.switchTab === 'function') {
+        window.switchTab(isReplay && prevTab ? prevTab : 'atelier');
+      }
+      isReplay = false; prevTab = null;
       if (onDone) onDone();
     }, 600);
   }
@@ -472,9 +548,15 @@
     const el = document.getElementById('intro');
     if (!el) return false;
     if (hasSeen() && !force) { el.style.display = 'none'; return false; }
+    // 다시보기면 재생 전 화면을 기억해 두었다가 끝나고 복귀
+    isReplay = !!force;
+    prevTab = (typeof window.currentTab === 'string') ? window.currentTab : null;
     el.classList.remove('hide');
     el.style.display = 'flex';
     idx = 0;
+    artFlip = false;
+    const artEl = document.getElementById('introArt');
+    if (artEl) artEl.innerHTML = '';    // 레이어 초기화 (재생 시 잔상 방지)
     auto = true;                       // 기본 켜짐
     const ab = document.getElementById('introAuto');
     if (ab) ab.classList.add('on');
