@@ -58,6 +58,7 @@
       brew_creature: '🌟 전시 매력 +{n}',
       // 모달
       confirm_reset_look: '정말로 나의 외형을 초기화 하시겠습니까?',
+      confirm_reset_game: '게임을 초기화 하시겠습니까?',
       confirm_restart: '정말로 처음부터 다시 시작할까요? 모든 진행이 사라집니다.',
       btn_ok: '확인', btn_cancel: '취소',
       // 설정
@@ -135,6 +136,7 @@
       brew_stat: '✨ Visual +{b}　💖 Aura +{c}',
       brew_creature: '🌟 Display Charm +{n}',
       confirm_reset_look: 'Reset your appearance?',
+      confirm_reset_game: 'Reset the game and start over?',
       confirm_restart: 'Start over from the beginning? All progress will be lost.',
       btn_ok: 'OK', btn_cancel: 'Cancel',
       settings: '⚙️ Settings', setting_lang: 'Language',

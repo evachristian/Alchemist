@@ -895,15 +895,21 @@ function fillEnergy() {
   toast(T('ap_filled'));
 }
 
-// ─── 초기화(디버그용) ───
-function resetGame() {
-  showConfirm(T('confirm_restart'), () => {
-    S = defaultState();
-    save();
-    switchTab('showcase');
-    toast(T('restarted'));
+// ─── 게임 초기화 = 신규 시작 (마이 룸 상단 ↺ 버튼) ───
+// 세이브와 '튜토리얼 봤음' 표시를 지우고 새로고침 → 로고 → 튜토리얼 → 이름 입력까지 처음부터.
+// 언어·사운드 설정은 게임 진행이 아니라 앱 환경설정이라 남겨 둔다.
+function askResetGame() {
+  showConfirm(T('confirm_reset_game'), () => {
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(window.Intro ? Intro.SEEN_KEY : 'dieter_alchemist_intro_seen_v1');
+    } catch (e) {}
+    location.reload();
   });
 }
+
+// (보관) 외형만 기본값으로 되돌리기 — 지금은 ↺ 버튼이 '게임 초기화'로 쓰이는 중
+function resetGame() { askResetGame(); }
 
 // ─── 부팅 ───
 // (스플래시 표시/제거는 index.html 인라인 스크립트에서 처리)
