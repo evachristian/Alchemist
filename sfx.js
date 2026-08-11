@@ -70,7 +70,13 @@
     success() { tone(523, 0.12, 'triangle', 0.09, 0); tone(659, 0.12, 'triangle', 0.09, 0.1); tone(784, 0.22, 'triangle', 0.09, 0.2); },
     fail()    { tone(196, 0.25, 'sawtooth', 0.06, 0); tone(147, 0.30, 'sawtooth', 0.06, 0.12); },
     pick()    { tone(660, 0.08, 'sine', 0.06); },
-    click()   { tone(880, 0.05, 'square', 0.03); },
+
+    // ── UI 버튼음 (짧고 작게 — 다른 효과음을 가리지 않도록) ──
+    ui_tap()     { tone(1180, 0.045, 'triangle', 0.042); tone(1980, 0.035, 'sine', 0.018, 0.012); },
+    ui_tab()     { tone(880, 0.05, 'triangle', 0.040); tone(1320, 0.07, 'sine', 0.026, 0.03); },
+    ui_confirm() { tone(784, 0.055, 'triangle', 0.045); tone(1175, 0.10, 'sine', 0.032, 0.05); },
+    ui_back()    { tone(660, 0.055, 'triangle', 0.038); tone(440, 0.10, 'sine', 0.030, 0.045); },
+    click()      { BANK.ui_tap(); },
 
     // 인트로 — 치킨 먹는 소리 "냠냠냠…"
     chew() {
@@ -151,6 +157,37 @@
       SFX.unlock();
       window.removeEventListener(ev, once);
     }, { passive: true }));
+
+  // ─── 모든 UI 버튼에 버튼음 (이벤트 위임 — 나중에 그려지는 버튼도 자동 적용) ───
+  // 소리를 넣고 싶지 않은 요소에는 data-nosfx 속성을 달면 됨
+  const TAP_SEL = [
+    'button', '.tab-btn', '[role="button"]', '[data-sfx]',
+    '.spot-card', '.c-slot', '.ing-chip', '.potion-card',
+    '.empty-hint.clickable', '.bag-toggle', '.wr-item', '.set-opt',
+    '.stat-box[onclick]',
+  ].join(',');
+
+  function uiSound(el) {
+    if (el.dataset && el.dataset.sfx) return el.dataset.sfx;   // 개별 지정 우선
+    const c = el.classList;
+    if (c.contains('tab-btn')) return 'ui_tab';
+    if (c.contains('btn-primary')) return 'ui_confirm';
+    if (c.contains('btn-ghost') || c.contains('set-x') || c.contains('i-skip')) return 'ui_back';
+    return 'ui_tap';
+  }
+
+  // pointerdown 시점에 재생 → 누르는 즉시 반응하고, 결과음(성공/실패)보다 먼저 들림
+  document.addEventListener('pointerdown', function (e) {
+    if (!on) return;
+    const t = e.target;
+    if (!t || !t.closest) return;
+    // 모달 딤 영역 터치 = 닫기
+    if (t.classList && t.classList.contains('modal')) { SFX.play('ui_back'); return; }
+    const el = t.closest(TAP_SEL);
+    if (!el || el.disabled) return;
+    if (el.hasAttribute('data-nosfx') || el.closest('[data-nosfx]')) return;
+    SFX.play(uiSound(el));
+  }, true);
 
   window.Sfx = SFX;
 })();
