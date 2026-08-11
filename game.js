@@ -22,6 +22,7 @@ const defaultState = () => ({
   unlocked:  [],          // 해금한 커스터마이징 아이템 id 목록 (starter 외)
   energy:    D.ENERGY.cap,  // 현재 에너지 (행동력)
   energyDay: dayKey(),      // 마지막 충전 기준 로컬 날짜 키 (YYYYMMDD)
+  name:      '',            // 연금술사 이름 (튜토리얼 종료 후 입력)
 });
 
 let S = load();
@@ -71,9 +72,11 @@ function weightedPick(spot) {
 // anchor(요소)를 주면 그 아이콘 근처에 말풍선처럼 표시 → 가독성↑
 // (문구 길이가 늘어나도 UI와 겹치지 않도록 토스트로 처리)
 let toastTimer = null;
-function toast(msg, anchor) {
+function toast(msg, anchor, ms) {
   const el = document.getElementById('toast');
   el.textContent = msg;
+  // 줄바꿈이 있거나 문구가 길면 한 줄 말줄임 대신 여러 줄로 표시
+  el.classList.toggle('multi', String(msg).indexOf('\n') >= 0 || String(msg).length > 22);
 
   if (anchor && anchor.getBoundingClientRect) {
     const r = anchor.getBoundingClientRect();
@@ -96,7 +99,7 @@ function toast(msg, anchor) {
   }
 
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms || 1800);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -617,14 +620,27 @@ function closeSettings() {
 }
 function renderSettings() {
   const el = document.getElementById('setLangList');
-  if (!el || !window.I18N) return;
-  const cur = I18N.getLang();
-  el.innerHTML = I18N.langs().map(l =>
-    `<button class="set-opt ${l.code === cur ? 'on' : ''}" onclick="chooseLang('${l.code}')">${l.label}</button>`
-  ).join('');
+  if (el && window.I18N) {
+    const cur = I18N.getLang();
+    el.innerHTML = I18N.langs().map(l =>
+      `<button class="set-opt ${l.code === cur ? 'on' : ''}" onclick="chooseLang('${l.code}')">${l.label}</button>`
+    ).join('');
+  }
+  // 사운드 On/Off (기본 On)
+  const se = document.getElementById('setSoundList');
+  if (se) {
+    const on = window.Sfx ? Sfx.isOn() : true;
+    se.innerHTML =
+      `<button class="set-opt ${on ? 'on' : ''}" onclick="chooseSound(true)">${T('sound_on')}</button>` +
+      `<button class="set-opt ${on ? '' : 'on'}" onclick="chooseSound(false)">${T('sound_off')}</button>`;
+  }
 }
 function chooseLang(code) {
   if (window.I18N) I18N.setLang(code);   // 즉시 적용
+  renderSettings();
+}
+function chooseSound(on) {
+  if (window.Sfx) Sfx.setOn(on);         // 즉시 적용 + localStorage 저장
   renderSettings();
 }
 // 임시: 캐시 지우기 (브라우저 캐시 + Service Worker + 저장 데이터 유지 여부 선택)
@@ -655,6 +671,69 @@ function replayIntro() {
   // 리로드 없이 즉시 재생 (로고 인트로/마이 룸을 거치지 않음)
   if (window.Intro) Intro.start(null, true);
   else location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  이름 입력 플로우 (튜토리얼 인트로가 끝나면 1회)
+// ═══════════════════════════════════════════════════════════════
+// 한글 1글자 = 2폭, 영문/숫자 1글자 = 1폭 → 한글 6글자 = 영문 12글자 = 12폭
+const NAME_MAX_W = 12;
+// 이름에 허용하는 문자 (한글 음절/자모 · 영문 · 숫자) — 그 외는 특수 문자로 간주
+const NAME_ALLOW = /^[0-9A-Za-zᄀ-ᇿ㄰-㆏가-힣]+$/;
+const NAME_KO = /[ᄀ-ᇿ㄰-㆏가-힣]/;
+
+function nameWidth(s) {
+  let w = 0;
+  for (const ch of String(s)) w += NAME_KO.test(ch) ? 2 : 1;
+  return w;
+}
+
+// 튜토리얼 종료 후 호출 (이미 이름이 있으면 표시하지 않음)
+function askPlayerName(force) {
+  if (!force && S.name) return;
+  const inp = document.getElementById('nameInput');
+  if (inp) inp.value = '';
+  clearNameError();
+  const m = document.getElementById('nameModal');
+  if (!m) return;
+  m.classList.add('show');
+  setTimeout(() => { try { if (inp) inp.focus(); } catch (e) {} }, 150);
+}
+function closeNameModal() {
+  const m = document.getElementById('nameModal');
+  if (m) m.classList.remove('show');
+}
+function clearNameError() {
+  const e = document.getElementById('nameError');
+  if (e) e.textContent = '';
+}
+function setNameError(msg) {
+  const e = document.getElementById('nameError');
+  if (e) e.textContent = msg;
+  if (window.Sfx) Sfx.play('fail');
+}
+// '?' 아이콘 → 입력 조건 안내
+function showNameRules(el) { toast(T('name_rules'), el); }
+
+function submitName() {
+  const inp = document.getElementById('nameInput');
+  const raw = inp ? inp.value : '';
+  // 조건 1-a: 공백 불가 (빈 값 포함)
+  if (!raw || /\s/.test(raw)) { setNameError(T('name_err_space')); return; }
+  // 조건 2: 특수 문자 불가
+  if (!NAME_ALLOW.test(raw)) { setNameError(T('name_err_char')); return; }
+  // 조건 1-b: 한글 6글자 / 영문 12글자 이내
+  if (nameWidth(raw) > NAME_MAX_W) {
+    setNameError(NAME_KO.test(raw) ? T('name_err_len_ko') : T('name_err_len_en'));
+    return;
+  }
+  S.name = raw;
+  save();
+  clearNameError();
+  closeNameModal();
+  if (window.Sfx) Sfx.play('success');
+  toast(T('name_ok', { name: raw }), null, 3200);   // 요정 대모의 축하 메시지
+  if (typeof render === 'function') render();
 }
 
 // ─── 확인 모달 (공용) ───

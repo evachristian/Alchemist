@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260804u">
+<link rel="stylesheet" href="style.css?v=20260811a">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
 <div id="splash" class="splash">
   <div class="splash-inner">
     <!-- 로고 이미지(logo.png)가 있으면 그것을 사용, 없으면 아래 SVG로 자동 폴백 -->
-    <img id="splashLogoImg" class="splash-logo" src="logo.png?v=20260804u" alt="Dream Syndicate Studio"
+    <img id="splashLogoImg" class="splash-logo" src="logo.png?v=20260811a" alt="Dream Syndicate Studio"
          onerror="this.remove(); var f=document.getElementById('splashLogoSvg'); if(f) f.style.display='block';">
     <svg id="splashLogoSvg" class="splash-logo" style="display:none" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dream Syndicate Studio">
       <defs>
@@ -206,6 +206,15 @@
   @keyframes iTele { 0%,100% { opacity: 1; transform: scale(1) translateY(0); } 55% { opacity: 0.55; transform: scale(0.9) translateY(-10px); } }
   #intro .i-wandcast { animation: iWand 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom right; }
   @keyframes iWand { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-10deg); } }
+  /* 이마에 흐르는 왕 땀 (당황) */
+  #intro .i-sweat { animation: iSweat 1.9s ease-in infinite; }
+  #intro .i-sweat.d2 { animation-delay: 0.95s; }
+  @keyframes iSweat {
+    0%   { opacity: 0;   transform: translateY(-6px) scale(0.35); }
+    16%  { opacity: 1;   transform: translateY(0) scale(1); }
+    45%  { opacity: 1;   transform: translateY(9px) scale(1.04); }
+    100% { opacity: 0;   transform: translateY(36px) scale(0.8); }
+  }
 </style>
 <div id="intro">
   <div id="introStage">
@@ -462,6 +471,10 @@
       <div id="setLangList" class="set-opts"></div>
     </div>
     <div class="set-row">
+      <div class="set-label" data-i18n="setting_sound">사운드</div>
+      <div id="setSoundList" class="set-opts"></div>
+    </div>
+    <div class="set-row">
       <button class="btn btn-dev set-full" onclick="replayIntro()">
         <span data-i18n="setting_intro_replay">튜토리얼 인트로 다시보기</span>
       </button>
@@ -471,6 +484,25 @@
         <span data-i18n="setting_clear_cache">캐시 지우기 (임시)</span>
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ── 이름 입력 팝업 (튜토리얼 인트로 종료 후 1회) ── -->
+<div id="nameModal" class="modal">
+  <div class="modal-card name-card">
+    <div class="name-head">
+      <span class="name-title" data-i18n="name_title">이름 짓기</span>
+      <button class="name-help" onclick="showNameRules(this)" aria-label="?">?</button>
+    </div>
+    <div class="name-msg" data-i18n="name_msg">연금술사로서의 이름이 필요해요.
+뭐라고 불리고 싶나요?</div>
+    <input id="nameInput" class="name-input" type="text" maxlength="24"
+           autocomplete="off" autocapitalize="off" spellcheck="false"
+           oninput="clearNameError()" onkeydown="if(event.key==='Enter'){event.preventDefault();submitName();}">
+    <div id="nameError" class="name-error"></div>
+    <button class="btn btn-primary" onclick="submitName()">
+      <span data-i18n="name_confirm">결정</span>
+    </button>
   </div>
 </div>
 
@@ -488,11 +520,11 @@
 <!-- ── 토스트 ── -->
 <div id="toast" class="toast"></div>
 
-<script src="i18n.js?v=20260804u"></script>
-<script src="intro.js?v=20260804u"></script>
-<script src="data.js?v=20260804u"></script>
-<script src="avatar.js?v=20260804u"></script>
-<script src="sfx.js?v=20260804u"></script>
-<script src="game.js?v=20260804u"></script>
+<script src="i18n.js?v=20260811a"></script>
+<script src="intro.js?v=20260811a"></script>
+<script src="data.js?v=20260811a"></script>
+<script src="avatar.js?v=20260811a"></script>
+<script src="sfx.js?v=20260811a"></script>
+<script src="game.js?v=20260811a"></script>
 </body>
 </html>

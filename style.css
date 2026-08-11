@@ -425,6 +425,31 @@ body {
 .brew-stats { font-size: 0.9rem; font-weight: 800; background: var(--lav); border-radius: 12px; padding: 8px; margin-bottom: 16px; }
 .modal-card .btn { width: 100%; }
 .confirm-text { font-size: 1.02rem; font-weight: 800; line-height: 1.55; margin-bottom: 20px; }
+
+/* ─── 이름 입력 팝업 ─── */
+.name-card { max-width: 330px; }
+.name-head { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
+.name-title { font-size: 1.05rem; font-weight: 900; }
+.name-help {
+  width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--lav-2); color: #fff; font-size: 0.78rem; font-weight: 900;
+  font-family: inherit; line-height: 22px; padding: 0; flex: none;
+}
+.name-help:active { transform: scale(0.92); }
+.name-msg {
+  font-size: 0.95rem; font-weight: 700; line-height: 1.6; color: var(--ink);
+  white-space: pre-line; margin-bottom: 16px;
+}
+.name-input {
+  width: 100%; border: 2px solid var(--pink); border-radius: 14px;
+  padding: 12px 14px; font-size: 1rem; font-weight: 800; font-family: inherit;
+  color: var(--ink); background: var(--cream); text-align: center; outline: none;
+}
+.name-input:focus { border-color: var(--pink-2); background: #fff; }
+.name-error {
+  min-height: 18px; font-size: 0.78rem; font-weight: 800; color: #e2708f;
+  margin: 8px 0 12px; line-height: 1.4;
+}
 .confirm-actions { display: flex; gap: 10px; }
 .modal-card .confirm-actions .btn { width: auto; flex: 1; }
 
@@ -440,3 +465,6 @@ body {
 /* 아이콘 옆에 붙는 토스트 (좌표는 JS가 지정) */
 .toast.anchored { bottom: auto; left: 0; transform: translateY(-6px); transform-origin: top center; }
 .toast.anchored.show { transform: translateY(0); }
+/* 여러 줄 토스트 (이름 규칙 안내 등) */
+.toast.multi { white-space: pre-line; border-radius: 14px; text-align: center; line-height: 1.5; max-width: 280px; word-break: keep-all; }
+.toast.multi.anchored { text-align: left; }

@@ -92,14 +92,28 @@
     </g>`;
   }
 
+  // 이마에 흐르는 왕 땀 (당황 연출)
+  function sweatDrop(x, y, s, cls) {
+    return `<g class="i-sweat ${cls || ''}" style="transform-box:view-box; transform-origin:${x}px ${y}px">
+      <g transform="translate(${x},${y}) scale(${s})">
+        <path d="M0,-15 C5.5,-4.5 11,2 11,7.5 A11,11 0 1 1 -11,7.5 C-11,2 -5.5,-4.5 0,-15 Z"
+              fill="#9fdff7" stroke="#57b4de" stroke-width="1.6" opacity="0.95"/>
+        <ellipse cx="-3.8" cy="4.5" rx="3.2" ry="4.6" fill="#ffffff" opacity="0.8"/>
+      </g>
+    </g>`;
+  }
+
   // 통통한 공주 — 앞모습 (표정 지정)
+  // over: 앞머리 위에 그릴 요소 (땀방울 등)
   function princessFront(mood, bubble) {
-    let eyes, mouth, extra = '';
+    let eyes, mouth, extra = '', over = '';
     if (mood === 'shy') {
       eyes = `<path d="M132,176 Q138,170 144,176" stroke="#4a3a42" stroke-width="2.6" fill="none" stroke-linecap="round"/>
               <path d="M156,176 Q162,170 168,176" stroke="#4a3a42" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
       mouth = `<path d="M144,190 Q150,186 156,190" stroke="#c97b86" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
       extra = `<g class="i-blush" fill="#ff9db4" opacity="0.55"><ellipse cx="128" cy="186" rx="8" ry="5"/><ellipse cx="172" cy="186" rx="8" ry="5"/></g>`;
+      // 이마(관자놀이)에서 흘러내리는 왕 땀 — 두 방울을 시차를 두고 반복
+      over = sweatDrop(178, 158, 1.35, '') + sweatDrop(122, 162, 1.0, 'd2');
     } else if (mood === 'ask') {
       eyes = `<ellipse cx="138" cy="176" rx="5.4" ry="6.6" fill="#4a3a42"/><ellipse cx="162" cy="176" rx="5.4" ry="6.6" fill="#4a3a42"/>
               <circle cx="140" cy="173.5" r="1.9" fill="#fff"/><circle cx="164" cy="173.5" r="1.9" fill="#fff"/>`;
@@ -142,6 +156,7 @@
       <!-- 앞머리 (부드러운 라운드 뱅) -->
       <path d="M116,174 C114,146 128,136 150,136 C172,136 186,146 184,174
         C180,160 168,152 150,152 C132,152 120,160 116,174 Z" fill="${HAIR}"/>
+      ${over}
       ${bubble ? speechBubble() : ''}
     </g>`;
   }
@@ -303,32 +318,37 @@
 
   // ─── 씬 정의 ────────────────────────────────────────────────
   const IT = (k) => (window.I18N ? I18N.t(k) : k);
+  // sfx: 해당 컷이 표시될 때 재생할 효과음 이름 (설정에서 Off 시 무음)
+  // sfx2: 조금 늦게 한 번 더 재생 (예: 땀 → 두 번째 방울)
   const SCENES = [
-    { art: () => bg() + P(princessEating()), sp: 'sp_narrator', key: 'intro_1' },
-    { art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130), sp: 'sp_fairy', key: 'intro_2' },
-    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3' },
-    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4' },
-    { art: () => bg() + P(princessFront('ask', true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5' },
-    { art: () => bg() + P(princessFront('ask')) + F(fairy('cast')) + sparkles(9, 285, 340, 150), sp: 'sp_fairy', key: 'intro_6' },
+    // 치킨을 뜯는 소리 "냠냠냠…"
+    { art: () => bg() + P(princessEating()), sp: 'sp_narrator', key: 'intro_1', sfx: 'chew' },
+    { art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130), sp: 'sp_fairy', key: 'intro_2', sfx: 'sparkle' },
+    // 이마에 왕 땀 — "뚝…"
+    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3', sfx: 'sweat', sfx2: ['sweat', 950] },
+    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4', sfx: 'sparkle' },
+    // "?!" — 놀라는 소리 "허억?"
+    { art: () => bg() + P(princessFront('ask', true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5', sfx: 'gasp' },
+    { art: () => bg() + P(princessFront('ask')) + F(fairy('cast')) + sparkles(9, 285, 340, 150), sp: 'sp_fairy', key: 'intro_6', sfx: 'magic' },
     // 요정이 별 지팡이로 공주를 '톡' — 마법이 뻗어나감 (대사 없음, 짧게)
     { art: () => bg() + P(princessFront('ask')) + F(fairy('tap')) + tapSpark(158, 420) + sparkles(8, 250, 400, 120),
-      sp: 'sp_narrator', key: 'intro_8', hold: 900 },
+      sp: 'sp_narrator', key: 'intro_8', hold: 900, sfx: 'tap' },
     // 텔레포트 시전 — 마법 강조 (빛기둥 + 마법진 + 반짝이)
     { art: () => bg() + teleportFx() + `<g class="i-vanish">${P(princessFront('scream'))}</g>` + F(fairy('cast')) + sparkles(16, 140, 380, 210),
-      sp: 'sp_princess', key: 'intro_7' },
+      sp: 'sp_princess', key: 'intro_7', sfx: 'magic' },
     // 공주가 '펑!' 하고 사라진 직후 (대사 없음) → 2초 뒤 자동으로 Scene #2
     { art: () => bg() + teleportFx(true) + burst(145, 400, 1.15) + F(fairy('cast')) + sparkles(12, 140, 400, 200),
-      sp: 'sp_narrator', key: 'intro_8', hold: 2000, flash: true },
+      sp: 'sp_narrator', key: 'intro_8', hold: 2000, flash: true, sfx: 'pop' },
 
     // ── Scene #2: 어둡고 허름한 연금술 공방 ──
     // Scene #2 첫 컷: '펑!' 하고 나타남 + 화면 전환 플래시
     { art: () => bg2() + burst(145, 400, 1.15) + P(princessFront('dizzy')) + F(fairy('idle')) + sparkles(6, 250, 380, 150),
-      sp: 'sp_fairy', key: 'intro_9', flash: true },
+      sp: 'sp_fairy', key: 'intro_9', flash: true, sfx: 'pop', sfx2: ['dizzy', 420] },
     { art: () => bg2() + P(princessFront('dizzy')) + F(fairy('idle')),
       sp: 'sp_princess', key: 'intro_10' },
     // 요정이 마법으로 큰 가마솥을 만든다 → 가마솥 등장 + 미소
     { art: () => bg2() + P(princessFront('ask')) + F(fairy('castbig')) + bigCauldron() + sparkles(12, 300, 470, 170),
-      sp: 'sp_fairy', key: 'intro_11' },
+      sp: 'sp_fairy', key: 'intro_11', sfx: 'bubble' },
   ];
 
   // 지팡이 끝에서 튀는 마법 스파크 (톡 치는 지점)
@@ -392,6 +412,8 @@
   let auto = true, autoTimer = null;   // 자동 재생 기본 켜짐
   let isReplay = false, prevTab = null;  // 다시보기 여부 / 재생 전 화면
   let artFlip = false;                   // 아트 크로스페이드 레이어 토글
+  let sfxTimer = null;                   // 컷 안에서 지연 재생하는 효과음
+  function clearSfx() { if (sfxTimer) { clearTimeout(sfxTimer); sfxTimer = null; } }
 
   // 대사 재생 배속 (1.25 = 1.25배 빠르게)
   const SPEED = 1.25;
@@ -482,6 +504,13 @@
     const boxEl = document.getElementById('introBox');
     if (boxEl) { boxEl.classList.remove('i-in'); void boxEl.offsetWidth; boxEl.classList.add('i-in'); }
 
+    // 컷 효과음 (설정에서 사운드 Off 면 Sfx 쪽에서 무시됨)
+    clearSfx();
+    if (window.Sfx) {
+      if (s.sfx) Sfx.play(s.sfx);
+      if (s.sfx2) sfxTimer = setTimeout(() => Sfx.play(s.sfx2[0]), s.sfx2[1]);
+    }
+
     // hold 씬: 자동 재생과 무관하게 지정 시간 뒤 자동 진행 (조작 UI 숨김)
     const foot = document.getElementById('introFoot');
     if (s.hold) {
@@ -521,6 +550,7 @@
 
   function finish() {
     clearAuto();
+    clearSfx();
     auto = true;
     const el = document.getElementById('intro');
     if (!el) return;
@@ -533,8 +563,11 @@
       if (typeof window.switchTab === 'function') {
         window.switchTab(isReplay && prevTab ? prevTab : 'atelier');
       }
+      const wasReplay = isReplay;
       isReplay = false; prevTab = null;
       if (onDone) onDone();
+      // 인트로가 끝나면 이름 입력 팝업 (이미 이름이 있으면 표시하지 않음)
+      if (!wasReplay && typeof window.askPlayerName === 'function') window.askPlayerName();
     }, 600);
   }
 
