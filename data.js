@@ -43,27 +43,27 @@ const RECIPES = [
   // ── 물약 ──
   {
     inputs: ['dew', 'herb'],
-    result: { id: 'vitality', kind: 'potion', emoji: '🧴', name: '생기 물약',
+    result: { id: 'vitality', kind: 'potion', grade: 'low', emoji: '🧴', name: '생기 물약',
       desc: '피부에 생기가 도는 초록빛 물약.', beauty: 3, charm: 0 },
   },
   {
     inputs: ['berry', 'petal'],
-    result: { id: 'blush', kind: 'potion', emoji: '💄', name: '홍조 물약',
+    result: { id: 'blush', kind: 'potion', grade: 'mid', emoji: '💄', name: '홍조 물약',
       desc: '볼에 발그레한 홍조를 더한다.', beauty: 1, charm: 3 },
   },
   {
     inputs: ['dew', 'petal'],
-    result: { id: 'fragrance', kind: 'potion', emoji: '🌷', name: '향기 물약',
+    result: { id: 'fragrance', kind: 'potion', grade: 'low', emoji: '🌷', name: '향기 물약',
       desc: '은은한 꽃향기를 두른다.', beauty: 1, charm: 2 },
   },
   {
     inputs: ['crystal', 'mushroom'],
-    result: { id: 'mystic', kind: 'potion', emoji: '🔮', name: '신비 물약',
+    result: { id: 'mystic', kind: 'potion', grade: 'mid', emoji: '🔮', name: '신비 물약',
       desc: '신비로운 아우라를 뿜는 물약.', beauty: 4, charm: 2 },
   },
   {
     inputs: ['berry', 'herb', 'petal'],
-    result: { id: 'rainbow', kind: 'potion', emoji: '🌈', name: '무지개 엘릭서',
+    result: { id: 'rainbow', kind: 'potion', grade: 'high', emoji: '🌈', name: '무지개 엘릭서',
       desc: '전설의 엘릭서. 비주얼과 아우라를 크게 끌어올린다.', beauty: 5, charm: 5 },
   },
 
@@ -83,6 +83,16 @@ const RECIPES = [
     result: { id: 'unicorn', kind: 'creature', emoji: '🦄', name: '유니콘',
       desc: '순수한 자에게만 나타난다는 전설의 유니콘.', charmBonus: 5 },
   },
+];
+
+// ─── 레시피 북 카테고리 ───
+// 물약은 등급(grade)으로, 크리처는 kind 로 분류한다.
+// 등급 기준: 하급 = 효과 합 3 이하 / 중급 = 4~6 / 상급 = 7 이상
+const RECIPE_CATS = [
+  { id: 'low',      label: '하급 물약', match: r => r.result.kind === 'potion' && r.result.grade === 'low' },
+  { id: 'mid',      label: '중급 물약', match: r => r.result.kind === 'potion' && r.result.grade === 'mid' },
+  { id: 'high',     label: '상급 물약', match: r => r.result.kind === 'potion' && r.result.grade === 'high' },
+  { id: 'creature', label: '크리처',   match: r => r.result.kind === 'creature' },
 ];
 
 // ─── 실패작 (Sludge) ───
@@ -161,6 +171,7 @@ const WARDROBE = {
   ],
   dress: [
     { id: 'dress_none',     slot: 'dress', kind: 'none',  name: '없음' },
+    { id: 'dress_princess', slot: 'dress', kind: 'aline', name: '공주 드레스', color: '#7fa06a', starter: true },
     { id: 'dress_onepiece', slot: 'dress', kind: 'aline', name: '원피스', color: '#ffc2e2' },
     { id: 'dress_gown',     slot: 'dress', kind: 'gown',  name: '드레스', color: '#b8d4ff' },
   ],
@@ -212,7 +223,7 @@ const ENERGY = {
 // 새 캐릭터 기본 착장
 const DEFAULT_OUTFIT = {
   hair: 'hair_long', hairColor: 'hcol_brown', expression: 'exp_smile', tattoo: 'tattoo_none',
-  top: 'top_tee', bottom: 'bottom_skirt', dress: 'dress_none',
+  top: 'top_tee', bottom: 'bottom_skirt', dress: 'dress_princess',
   circlet: 'circlet_none', earring: 'earring_none', necklace: 'necklace_none',
 };
 
@@ -227,6 +238,6 @@ for (const r of RECIPES) RECIPE_MAP[recipeKey(r.inputs)] = r.result;
 
 window.GameData = {
   INGREDIENTS, SPOTS, RECIPES, RECIPE_MAP, SLUDGE, TIERS,
-  WARDROBE, WARDROBE_SLOTS, DEFAULT_OUTFIT, ENERGY,
+  WARDROBE, WARDROBE_SLOTS, DEFAULT_OUTFIT, ENERGY, RECIPE_CATS,
   getTier, recipeKey,
 };

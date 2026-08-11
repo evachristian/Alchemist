@@ -104,8 +104,9 @@
   }
 
   // 통통한 공주 — 앞모습 (표정 지정)
+  // bubble: 머리 위 말풍선 / sweat: 이마에 흐르는 왕 땀
   // over: 앞머리 위에 그릴 요소 (땀방울 등)
-  function princessFront(mood, bubble) {
+  function princessFront(mood, bubble, sweat) {
     let eyes, mouth, extra = '', over = '';
     if (mood === 'shy') {
       eyes = `<path d="M132,176 Q138,170 144,176" stroke="#4a3a42" stroke-width="2.6" fill="none" stroke-linecap="round"/>
@@ -113,7 +114,13 @@
       mouth = `<path d="M144,190 Q150,186 156,190" stroke="#c97b86" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
       extra = `<g class="i-blush" fill="#ff9db4" opacity="0.55"><ellipse cx="128" cy="186" rx="8" ry="5"/><ellipse cx="172" cy="186" rx="8" ry="5"/></g>`;
       // 이마(관자놀이)에서 흘러내리는 왕 땀 — 두 방울을 시차를 두고 반복
-      over = sweatDrop(178, 158, 0.45, '') + sweatDrop(122, 162, 0.33, 'd2');
+      if (sweat) over = sweatDrop(178, 158, 0.45, '') + sweatDrop(122, 162, 0.33, 'd2');
+    } else if (mood === 'smile') {
+      // 엔딩용 — 활짝 웃는 표정
+      eyes = `<path d="M132,178 Q138,170 144,178" stroke="#4a3a42" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+              <path d="M156,178 Q162,170 168,178" stroke="#4a3a42" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
+      mouth = `<path d="M142,188 Q150,196 158,188" stroke="#c97b86" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+      extra = `<g class="i-blush" fill="#ff9db4" opacity="0.6"><ellipse cx="127" cy="186" rx="8.5" ry="5.2"/><ellipse cx="173" cy="186" rx="8.5" ry="5.2"/></g>`;
     } else if (mood === 'ask') {
       eyes = `<ellipse cx="138" cy="176" rx="5.4" ry="6.6" fill="#4a3a42"/><ellipse cx="162" cy="176" rx="5.4" ry="6.6" fill="#4a3a42"/>
               <circle cx="140" cy="173.5" r="1.9" fill="#fff"/><circle cx="164" cy="173.5" r="1.9" fill="#fff"/>`;
@@ -325,7 +332,7 @@
     { art: () => bg() + P(princessEating()), sp: 'sp_narrator', key: 'intro_1', sfx: 'chew' },
     { art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130), sp: 'sp_fairy', key: 'intro_2', sfx: 'sparkle' },
     // 이마에 왕 땀 — "뚝…"
-    { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3', sfx: 'sweat', sfx2: ['sweat', 950] },
+    { art: () => bg() + P(princessFront('shy', false, true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3', sfx: 'sweat', sfx2: ['sweat', 950] },
     { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4', sfx: 'sparkle' },
     // "?!" — 놀라는 소리 "허억?"
     { art: () => bg() + P(princessFront('ask', true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5', sfx: 'gasp' },
@@ -349,6 +356,15 @@
     // 요정이 마법으로 큰 가마솥을 만든다 → 가마솥 등장 + 미소
     { art: () => bg2() + P(princessFront('ask')) + F(fairy('castbig')) + bigCauldron() + sparkles(12, 300, 470, 170),
       sp: 'sp_fairy', key: 'intro_11', sfx: 'bubble' },
+  ];
+
+  // ─── 엔딩: 이름을 지은 뒤 요정 대모의 마무리 대사 → '시작하기' ───
+  let endName = '';
+  const ENDING = [
+    { art: () => bg2() + P(princessFront('smile')) + F(fairy('idle')) + bigCauldron() + sparkles(10, 300, 460, 170),
+      sp: 'sp_fairy', key: 'name_ok', vars: () => ({ name: endName }), sfx: 'sparkle' },
+    { art: () => bg2() + P(princessFront('smile')) + F(fairy('idle')) + bigCauldron() + sparkles(8, 280, 450, 190),
+      sp: 'sp_fairy', key: 'intro_start_q', end: true, sfx: 'sparkle' },
   ];
 
   // 지팡이 끝에서 튀는 마법 스파크 (톡 치는 지점)
@@ -414,6 +430,7 @@
   let artFlip = false;                   // 아트 크로스페이드 레이어 토글
   let sfxTimer = null;                   // 컷 안에서 지연 재생하는 효과음
   function clearSfx() { if (sfxTimer) { clearTimeout(sfxTimer); sfxTimer = null; } }
+  let list = SCENES;                     // 현재 재생 목록 (본편 / 엔딩)
 
   // 대사 재생 배속 (1.25 = 1.25배 빠르게)
   const SPEED = 1.25;
@@ -430,7 +447,7 @@
   }
 
   function paint() {
-    const s = SCENES[idx];
+    const s = list[idx];
     const art = document.getElementById('introArt');
     const box = document.getElementById('introText');
     const name = document.getElementById('introSpeaker');
@@ -486,12 +503,12 @@
     const sp = IT(s.sp);
     name.textContent = sp || '';
     name.style.display = sp ? '' : 'none';
-    box.textContent = IT(s.key);
+    box.textContent = sceneText(s);
 
     // 진행 표시
     const dots = document.getElementById('introDots');
     if (dots) {
-      dots.innerHTML = SCENES.map((_, i) =>
+      dots.innerHTML = list.map((_, i) =>
         `<span class="i-dot ${i === idx ? 'on' : ''}"></span>`).join('');
     }
     // 장면 전환 플래시 (텔레포트 전/후)
@@ -511,16 +528,30 @@
       if (s.sfx2) sfxTimer = setTimeout(() => Sfx.play(s.sfx2[0]), s.sfx2[1]);
     }
 
-    // hold 씬: 자동 재생과 무관하게 지정 시간 뒤 자동 진행 (조작 UI 숨김)
+    // 마지막 엔딩 컷: 자동 진행 없이 '시작하기' 버튼만 표시
     const foot = document.getElementById('introFoot');
+    const startBtn = document.getElementById('introStart');
+    if (startBtn) startBtn.style.display = s.end ? '' : 'none';
+    if (s.end) {
+      if (foot) foot.style.visibility = 'hidden';
+      clearAuto();
+      return;
+    }
+
+    // hold 씬: 자동 재생과 무관하게 지정 시간 뒤 자동 진행 (조작 UI 숨김)
     if (s.hold) {
       if (foot) foot.style.visibility = 'hidden';
       clearAuto();
       autoTimer = setTimeout(next, s.hold);
     } else {
       if (foot) foot.style.visibility = '';
-      scheduleAuto(IT(s.key));
+      scheduleAuto(sceneText(s));
     }
+  }
+
+  // 컷 대사 (엔딩처럼 이름 같은 변수를 끼워 넣는 경우 포함)
+  function sceneText(s) {
+    return window.I18N ? I18N.t(s.key, s.vars ? s.vars() : undefined) : s.key;
   }
 
   // ─── 자동 재생 ───
@@ -534,7 +565,7 @@
     auto = !auto;
     const btn = document.getElementById('introAuto');
     if (btn) btn.classList.toggle('on', auto);
-    if (auto) scheduleAuto(IT(SCENES[idx].key));
+    if (auto) scheduleAuto(sceneText(list[idx]));
     else clearAuto();
     // 켬/끔 안내 토스트 (버튼 근처)
     if (typeof window.toast === 'function') {
@@ -544,8 +575,59 @@
 
   function next() {
     clearAuto();
-    if (idx < SCENES.length - 1) { idx++; paint(); }
+    if (idx < list.length - 1) { idx++; paint(); return; }
+    // 본편이 끝났고 아직 이름이 없으면 → 이름 입력 → 엔딩 → 시작하기
+    if (list === SCENES && needsName()) { askName(); return; }
+    finish();
+  }
+
+  // 건너뛰기: 이름이 필요하면 마지막 컷으로 건너뛰고 이름 입력부터 진행
+  function skip() {
+    clearAuto(); clearSfx();
+    if (list === SCENES && needsName()) {
+      idx = SCENES.length - 1;
+      paint();
+      askName();
+      return;
+    }
+    finish();
+  }
+
+  function needsName() {
+    return !isReplay && typeof window.needsPlayerName === 'function' && window.needsPlayerName();
+  }
+
+  // 인트로 화면은 그대로 둔 채 이름 입력 팝업만 띄운다
+  function askName() {
+    clearAuto(); clearSfx();
+    showControls(false);
+    if (typeof window.askPlayerName === 'function') window.askPlayerName();
     else finish();
+  }
+
+  // 이름이 정해지면 요정 대모의 마무리 대사 재생
+  function startEnding(playerName) {
+    endName = playerName || '';
+    list = ENDING;
+    idx = 0;
+    auto = true;
+    // 엔딩에서는 하단 조작만 되살리고 '건너뛰기'는 계속 숨긴다
+    const foot = document.getElementById('introFoot');
+    if (foot) foot.style.visibility = '';
+    paint();
+  }
+
+  // 건너뛰기 / 하단 조작 UI 표시 토글
+  function showControls(show) {
+    const sk = document.querySelector('#intro .i-skip');
+    if (sk) sk.style.display = show ? '' : 'none';
+    const foot = document.getElementById('introFoot');
+    if (foot) foot.style.visibility = show ? '' : 'hidden';
+  }
+
+  function isPlaying() {
+    const el = document.getElementById('intro');
+    return !!el && el.style.display !== 'none' && !el.classList.contains('hide');
   }
 
   function finish() {
@@ -563,11 +645,12 @@
       if (typeof window.switchTab === 'function') {
         window.switchTab(isReplay && prevTab ? prevTab : 'atelier');
       }
-      const wasReplay = isReplay;
       isReplay = false; prevTab = null;
+      list = SCENES;                 // 다음 재생을 위해 본편으로 복귀
+      showControls(true);
+      const sb = document.getElementById('introStart');
+      if (sb) sb.style.display = 'none';
       if (onDone) onDone();
-      // 인트로가 끝나면 이름 입력 팝업 (이미 이름이 있으면 표시하지 않음)
-      if (!wasReplay && typeof window.askPlayerName === 'function') window.askPlayerName();
     }, 600);
   }
 
@@ -587,6 +670,8 @@
     el.classList.remove('hide');
     el.style.display = 'flex';
     idx = 0;
+    list = SCENES;
+    showControls(true);
     artFlip = false;
     const artEl = document.getElementById('introArt');
     if (artEl) artEl.innerHTML = '';    // 레이어 초기화 (재생 시 잔상 방지)
@@ -597,5 +682,5 @@
     return true;
   }
 
-  window.Intro = { start, next, finish, hasSeen, toggleAuto, SEEN_KEY };
+  window.Intro = { start, next, skip, finish, startEnding, isPlaying, hasSeen, toggleAuto, SEEN_KEY };
 })();

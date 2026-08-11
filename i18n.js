@@ -53,6 +53,7 @@
       dress_hint: '원피스를 입는 중이에요. 상·하의를 고르면 원피스가 벗겨져요.',
       // 조합 결과
       brew_new: '🎉 NEW! 레시피 발견',
+      recipe_found: "'{name}' 레시피를 알아냈다! 기쁘다!",
       brew_stat: '✨ 비주얼 +{b}　💖 아우라 +{c}',
       brew_creature: '🌟 전시 매력 +{n}',
       // 모달
@@ -73,6 +74,10 @@
       name_err_len_en: '12글자 이내로 입력해 주세요.',
       name_err_char: '특수 문자 없이 입력해 주세요.',
       name_ok: "'{name}', 좋아요! 무척 연금술사 다운 이름이군요!",
+      intro_start_q: '이제 시작해 볼까요?', btn_start: '시작하기',
+      // 다이어트 (체형 변화)
+      body_down: '✨ 몸이 조금 가벼워진 것 같아요!',
+      body_done: '🎉 완전히 날씬해졌어요!',
       // 임시
       dev_fill_ap: '⚡ AP 1000 충전 (임시)',
       // 공유
@@ -126,6 +131,7 @@
       restarted: 'Starting over 🌱',
       dress_hint: "You're wearing a dress. Choosing a top or bottom will remove it.",
       brew_new: '🎉 NEW! Recipe discovered',
+      recipe_found: "Discovered the '{name}' recipe! What a joy!",
       brew_stat: '✨ Visual +{b}　💖 Aura +{c}',
       brew_creature: '🌟 Display Charm +{n}',
       confirm_reset_look: 'Reset your appearance?',
@@ -143,6 +149,9 @@
       name_err_len_en: 'Please use 12 characters or fewer.',
       name_err_char: 'Please enter a name without special characters.',
       name_ok: "'{name}' — lovely! What an alchemist-worthy name!",
+      intro_start_q: 'Shall we begin?', btn_start: 'Start',
+      body_down: '✨ You feel a little lighter!',
+      body_done: '🎉 You are perfectly slim now!',
       dev_fill_ap: '⚡ Refill 1000 AP (temp)',
       share_text: '[Dieter Alchemist] My Total Charm {total} — {emoji} {tier}!',
       intro_skip: 'Skip ✕', intro_next: 'Next ▸',
@@ -166,6 +175,8 @@
   // ─── 데이터 이름 (id → 언어별) ───
   const NAMES = {
     en: {
+      // 레시피 북 카테고리
+      low_cat: 'Low Potions', mid_cat: 'Mid Potions', high_cat: 'High Potions', creature_cat: 'Creatures',
       // 재료
       herb: 'Herb', berry: 'Berry', petal: 'Petal', dew: 'Dew', mushroom: 'Mushroom', crystal: 'Crystal',
       // 장소
@@ -199,7 +210,7 @@
       tattoo_none: 'None', tattoo_star: 'Star', tattoo_tear: 'Teardrop', tattoo_heart: 'Heart', tattoo_rune: 'Rune',
       top_none: 'None', top_tee: 'Basic Tee', top_blouse: 'Blouse', top_knit: 'Knit', top_hoodie: 'Hoodie',
       bottom_none: 'None', bottom_skirt: 'Pleated Skirt', bottom_shorts: 'Shorts', bottom_pants: 'Jeans',
-      dress_none: 'None', dress_onepiece: 'One-piece', dress_gown: 'Gown',
+      dress_none: 'None', dress_princess: 'Princess Dress', dress_onepiece: 'One-piece', dress_gown: 'Gown',
       circlet_none: 'None', circlet_flower: 'Flower Circlet', circlet_tiara: 'Tiara', circlet_band: 'Ribbon Band',
       earring_none: 'None', earring_drop: 'Drop', earring_hoop: 'Hoop', earring_star: 'Star',
       necklace_none: 'None', necklace_pendant: 'Pendant', necklace_pearl: 'Pearl', necklace_choker: 'Choker',

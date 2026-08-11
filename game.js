@@ -48,6 +48,18 @@ function removeInv(id, n = 1) {
   S.inventory[id] = Math.max(0, invCount(id) - n);
   if (S.inventory[id] === 0) delete S.inventory[id];
 }
+// ─── 체형 (다이어트 진행도) ───
+// 시작은 튜토리얼 인트로의 '통통한 공주'. 공방에서 만든 물약을 마셔 ✨비주얼이 오르면
+// 단계적으로 날씬해진다. (숫자만 바꾸면 속도/단계 수를 조절할 수 있음)
+const BODY_STEPS = 4;          // 완전히 날씬해지기까지의 단계 수
+const BODY_PER_STEP = 15;      // 한 단계 내려가는 데 필요한 ✨비주얼
+// 0 = 날씬, 1 = 통통 (아바타 build 의 body 인자)
+function bodyLevel(beauty) {
+  const b = (beauty === undefined ? (S.stats.beauty || 0) : beauty);
+  const step = Math.min(BODY_STEPS, Math.floor(b / BODY_PER_STEP));
+  return 1 - step / BODY_STEPS;
+}
+
 function totalCharm() {
   const creatureBonus = S.creatures.reduce((sum, cid) => {
     const r = D.RECIPES.find(x => x.result.id === cid);
@@ -262,7 +274,13 @@ function brew() {
   }
 
   const isNew = !S.discovered.includes(result.id);
-  if (isNew) S.discovered.push(result.id);
+  if (isNew) {
+    S.discovered.push(result.id);
+    lastFound = result.id;              // 레시피 북에서 맨 위로 올려 강조
+    // 발견한 카테고리로 레시피 북을 자동 전환
+    const cat = D.RECIPE_CATS.find(c => c.match({ result }));
+    if (cat) recipeTab = cat.id;
+  }
 
   if (result.kind === 'potion') {
     S.potions[result.id] = (S.potions[result.id] || 0) + 1;
@@ -271,6 +289,10 @@ function brew() {
   }
   save(); render();
   showBrewResult(result, isNew);
+  // ??? 였던 레시피가 열리면 알림 (조합 결과 모달 위에 표시)
+  if (isNew) {
+    setTimeout(() => toast(T('recipe_found', { name: N(result.id, result.name) }), null, 3000), 900);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -282,11 +304,20 @@ function drinkPotion(potionId) {
   if (!r) return;
   S.potions[potionId]--;
   if (S.potions[potionId] === 0) delete S.potions[potionId];
+  const beforeBody = bodyLevel();
   S.stats.beauty += r.result.beauty || 0;
   S.stats.charm  += r.result.charm  || 0;
   save();
   toast(T('drank', { emoji: r.result.emoji, name: N(r.result.id, r.result.name), b: r.result.beauty, c: r.result.charm }));
   render();
+  // 물약을 마셔 체형 단계가 내려갔으면 알려준다
+  const afterBody = bodyLevel();
+  if (afterBody < beforeBody) {
+    setTimeout(() => {
+      toast(T(afterBody === 0 ? 'body_done' : 'body_down'), null, 2600);
+      if (window.Sfx) Sfx.play('sparkle');
+    }, 1500);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -397,13 +428,27 @@ function renderAtelier() {
   if (bagCount) bagCount.textContent = ids.length ? T('bag_kinds', { n: ids.length }) : T('bag_empty');
   applyBagState();
 
-  // 레시피 북
+  // 레시피 북 — 카테고리 탭 + 해당 카테고리 목록
+  const catEl = document.getElementById('recipeTabs');
+  if (catEl) {
+    catEl.innerHTML = D.RECIPE_CATS.map(c =>
+      `<button class="rb-tab ${recipeTab === c.id ? 'active' : ''}" onclick="setRecipeTab('${c.id}')">${N(c.id + '_cat', c.label)}</button>`
+    ).join('');
+    setupTabScroll(catEl);
+  }
+  const cat = D.RECIPE_CATS.find(c => c.id === recipeTab) || D.RECIPE_CATS[0];
+  // 알아낸 레시피를 위로 (방금 알아낸 것이 가장 위), ??? 는 아래로
+  const catRecipes = D.RECIPES.filter(cat.match).slice().sort((a, b) => {
+    const rank = r => (r.result.id === lastFound ? 0 : S.discovered.includes(r.result.id) ? 1 : 2);
+    return rank(a) - rank(b);
+  });
+
   const bookEl = document.getElementById('recipeBook');
-  bookEl.innerHTML = D.RECIPES.map(r => {
+  bookEl.innerHTML = catRecipes.map(r => {
     const found = S.discovered.includes(r.result.id);
     const inputs = r.inputs.map(id => D.INGREDIENTS[id].emoji).join(' + ');
     if (found) {
-      return `<div class="recipe-row">
+      return `<div class="recipe-row ${r.result.id === lastFound ? 'just-found' : ''}">
         <span class="recipe-in">${inputs}</span>
         <span class="recipe-arrow">→</span>
         <span class="recipe-out">${r.result.emoji} ${N(r.result.id, r.result.name)}</span>
@@ -415,8 +460,10 @@ function renderAtelier() {
       <span class="recipe-out">❓ ???</span>
     </div>`;
   }).join('');
+  // 진행도는 현재 카테고리 기준
+  const catFound = catRecipes.filter(r => S.discovered.includes(r.result.id)).length;
   document.getElementById('recipeProgress').textContent =
-    `${S.discovered.length} / ${D.RECIPES.length}`;
+    `${catFound} / ${catRecipes.length}`;
 }
 
 function renderShowcase() {
@@ -429,7 +476,7 @@ function renderShowcase() {
     const r = D.RECIPES.find(x => x.result.id === cid);
     return r ? `<span class="stage-creature">${r.result.emoji}</span>` : '';
   }).join('');
-  const avatarSvg = window.Avatar ? window.Avatar.build(S.outfit) : tier.emoji;
+  const avatarSvg = window.Avatar ? window.Avatar.build(S.outfit, bodyLevel()) : tier.emoji;
   const sceneSvg = window.Avatar && window.Avatar.roomScene ? window.Avatar.roomScene() : '';
   stage.innerHTML = `
     <div class="room-scene">${sceneSvg}</div>
@@ -507,6 +554,11 @@ function updateRoomTabs() {
 //  옷장 (Wardrobe) — 아바타 착장 + 커스터마이징 잠금/해금
 // ═══════════════════════════════════════════════════════════════
 let wardrobeTab = 'hair';
+
+// 레시피 북 카테고리 (하급/중급/상급 물약 · 크리처)
+let recipeTab = 'low';
+let lastFound = null;      // 방금 알아낸 레시피 id (목록 맨 위로 올려 강조)
+function setRecipeTab(id) { recipeTab = id; render(); }
 function setWardrobeTab(slot) { wardrobeTab = slot; renderWardrobe(); }
 
 function slotMeta(slot) { return D.WARDROBE_SLOTS.find(m => m.slot === slot); }
@@ -592,6 +644,50 @@ function renderWardrobe() {
     ? `<div class="wr-hint">${T('dress_hint')}</div>` : '';
 
   el.innerHTML = `<div class="wr-tabs">${tabs}</div>${hint}<div class="wr-items">${items}</div>${foot}`;
+  setupTabScroll(el.querySelector('.wr-tabs'));
+}
+
+// 슬롯 탭 줄의 좌우 스크롤
+// 터치는 브라우저 기본 스크롤을 쓰고, 데스크톱을 위해 마우스 휠 / 끌어서 스크롤을 더한다.
+// (렌더할 때마다 새 요소가 만들어지므로 요소마다 한 번씩 붙인다)
+function setupTabScroll(el) {
+  if (!el || el.dataset.scrollReady) return;
+  el.dataset.scrollReady = '1';
+
+  // 선택된 탭이 화면 밖이면 가운데로 당겨온다
+  const active = el.querySelector('.wr-tab.active');
+  if (active) {
+    el.scrollLeft = Math.max(0, active.offsetLeft - (el.clientWidth - active.offsetWidth) / 2);
+  }
+
+  // 마우스 휠(세로) → 가로 스크롤
+  el.addEventListener('wheel', e => {
+    if (el.scrollWidth <= el.clientWidth) return;
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // 가로 휠은 그대로
+    el.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }, { passive: false });
+
+  // 마우스로 끌어서 스크롤
+  let down = false, startX = 0, startLeft = 0, moved = 0;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;                  // 터치는 기본 동작 사용
+    down = true; moved = 0; startX = e.clientX; startLeft = el.scrollLeft;
+  });
+  el.addEventListener('pointermove', e => {
+    if (!down) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > moved) moved = Math.abs(dx);
+    if (moved > 3) { el.scrollLeft = startLeft - dx; el.classList.add('dragging'); e.preventDefault(); }
+  });
+  const release = () => { down = false; el.classList.remove('dragging'); };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+  el.addEventListener('pointerleave', release);
+  // 끌고 난 직후의 클릭은 탭 전환으로 치지 않는다
+  el.addEventListener('click', e => {
+    if (moved > 6) { e.stopPropagation(); e.preventDefault(); moved = 0; }
+  }, true);
 }
 
 // ─── 과시(공유) ───
@@ -732,9 +828,14 @@ function submitName() {
   clearNameError();
   closeNameModal();
   if (window.Sfx) Sfx.play('success');
-  toast(T('name_ok', { name: raw }), null, 3200);   // 요정 대모의 축하 메시지
   if (typeof render === 'function') render();
+  // 인트로가 떠 있으면 요정 대모의 마무리 대사 → '시작하기' 로 이어짐
+  if (window.Intro && Intro.isPlaying()) Intro.startEnding(raw);
+  else toast(T('name_ok', { name: raw }), null, 3200);
 }
+
+// 인트로가 끝났을 때 이름 입력이 필요한지 (intro.js 에서 호출)
+function needsPlayerName() { return !S.name; }
 
 // ─── 확인 모달 (공용) ───
 let _confirmCb = null;

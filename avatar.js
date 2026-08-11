@@ -260,8 +260,16 @@
   // ═══════════════════════════════════════════════════════════════
   //  조립
   // ═══════════════════════════════════════════════════════════════
-  function build(outfit) {
+  // body: 체형 0(날씬) ~ 1(튜토리얼 인트로의 통통한 공주). 기본 0.
+  // 몸통/팔다리와 '옷'을 같은 그룹으로 함께 늘려서 옷이 몸에서 어긋나지 않게 한다.
+  function build(outfit, body) {
     outfit = outfit || {};
+    const w = Math.max(0, Math.min(1, Number(body) || 0));
+    // 몸: 가로로 통통하게 / 머리: 살짝 둥글게
+    const bodyT = `translate(100,0) scale(${(1 + 0.36 * w).toFixed(3)},1) translate(-100,0)`;
+    const headT = `translate(100,70) scale(${(1 + 0.15 * w).toFixed(3)},${(1 + 0.08 * w).toFixed(3)}) translate(-100,-70)`;
+    const B = s => (w && s ? `<g transform="${bodyT}">${s}</g>` : s);   // 몸통 계열
+    const H = s => (w && s ? `<g transform="${headT}">${s}</g>` : s);   // 머리 계열
     const dress = getItem('dress', outfit.dress);
     const hasDress = !isNone(dress);
     const top = hasDress ? null : getItem('top', outfit.top);
@@ -273,21 +281,21 @@
     const expItem = getItem('expression', outfit.expression);
 
     const layers = [
-      hairBack(hairKind, hairColor),
-      legs(),
-      hasDress ? '' : renderBottom(bottom),
-      torsoArms(),
-      hasDress ? renderDress(dress) : renderTop(top),
-      faceAndExpression(expItem),
-      hairFront(hairKind, hairColor),
-      renderTattoo(getItem('tattoo', outfit.tattoo)),
-      renderEarring(getItem('earring', outfit.earring)),
-      renderNecklace(getItem('necklace', outfit.necklace)),
-      renderCirclet(getItem('circlet', outfit.circlet)),
+      H(hairBack(hairKind, hairColor)),
+      B(legs()),
+      B(hasDress ? '' : renderBottom(bottom)),
+      B(torsoArms()),
+      B(hasDress ? renderDress(dress) : renderTop(top)),
+      H(faceAndExpression(expItem)),
+      H(hairFront(hairKind, hairColor)),
+      B(renderTattoo(getItem('tattoo', outfit.tattoo))),
+      H(renderEarring(getItem('earring', outfit.earring))),
+      B(renderNecklace(getItem('necklace', outfit.necklace))),
+      H(renderCirclet(getItem('circlet', outfit.circlet))),
     ];
 
     return `<svg class="avatar-svg" viewBox="0 0 200 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="내 아바타">
-      <ellipse cx="100" cy="342" rx="52" ry="8" fill="rgba(120,90,110,0.14)"/>
+      <ellipse cx="100" cy="342" rx="${(52 * (1 + 0.18 * w)).toFixed(1)}" ry="8" fill="rgba(120,90,110,0.14)"/>
       ${layers.join('')}
     </svg>`;
   }
