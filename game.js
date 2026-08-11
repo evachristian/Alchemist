@@ -626,11 +626,34 @@ function chooseLang(code) {
   if (window.I18N) I18N.setLang(code);   // 즉시 적용
   renderSettings();
 }
+// 임시: 캐시 지우기 (브라우저 캐시 + Service Worker + 저장 데이터 유지 여부 선택)
+// 테스트 편의용 — 출시 버전에서는 제거
+function clearCacheHard() {
+  const done = () => {
+    // URL에 타임스탬프를 붙여 캐시된 HTML/JS/CSS를 무시하고 새로 받게 함
+    const base = location.href.split('#')[0].split('?')[0];
+    location.replace(base + '?cb=' + Date.now());
+  };
+  const jobs = [];
+  // Cache Storage 비우기
+  if (window.caches && caches.keys) {
+    jobs.push(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))).catch(() => {}));
+  }
+  // Service Worker 해제
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+    jobs.push(navigator.serviceWorker.getRegistrations()
+      .then(rs => Promise.all(rs.map(r => r.unregister()))).catch(() => {}));
+  }
+  Promise.all(jobs).then(done, done);
+}
+
 // 임시: 튜토리얼 인트로 다시보기
 function replayIntro() {
   closeSettings();
   try { localStorage.removeItem(window.Intro ? Intro.SEEN_KEY : 'dieter_alchemist_intro_seen_v1'); } catch (e) {}
-  location.reload();
+  // 리로드 없이 즉시 재생 (로고 인트로/마이 룸을 거치지 않음)
+  if (window.Intro) Intro.start(null, true);
+  else location.reload();
 }
 
 // ─── 확인 모달 (공용) ───

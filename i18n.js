@@ -62,6 +62,7 @@
       // 설정
       settings: '⚙️ 설정', setting_lang: '언어 설정',
       setting_intro_replay: '튜토리얼 인트로 다시보기', setting_temp: '(임시)',
+      setting_clear_cache: '캐시 지우기 (임시)',
       // 임시
       dev_fill_ap: '⚡ AP 1000 충전 (임시)',
       // 공유
@@ -122,6 +123,7 @@
       btn_ok: 'OK', btn_cancel: 'Cancel',
       settings: '⚙️ Settings', setting_lang: 'Language',
       setting_intro_replay: 'Replay Tutorial Intro', setting_temp: '(temp)',
+      setting_clear_cache: 'Clear Cache (temp)',
       dev_fill_ap: '⚡ Refill 1000 AP (temp)',
       share_text: '[Dieter Alchemist] My Total Charm {total} — {emoji} {tier}!',
       intro_skip: 'Skip ✕', intro_next: 'Next ▸',

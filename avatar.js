@@ -297,59 +297,119 @@
   //  돌벽 · 아치 창문/달빛 · 나무 바닥만. 가구/소품은 추후 사용자가 배치.
   //  (viewBox를 넓게 잡고 CSS에서 전체 폭으로 슬라이스 → 네모 프레임 없이 열린 방)
   // ═══════════════════════════════════════════════════════════════
+  // 시간대별 창밖 하늘 (한국시간 UTC+9 기준) — 아이폰 날씨 앱처럼 시간에 따라 변화
+  function skyPhase(now) {
+    const d = now || new Date();
+    const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+    const h = new Date(utc + 9 * 3600000).getHours();
+    if (h >= 5 && h < 8)   return 'dawn';    // 새벽/일출
+    if (h >= 8 && h < 16)  return 'day';     // 낮
+    if (h >= 16 && h < 19) return 'dusk';    // 노을
+    if (h >= 19 && h < 21) return 'evening'; // 초저녁
+    return 'night';                          // 밤
+  }
+
+  // 창 안쪽(하늘 + 천체) 그리기. cx,cy = 창 중심
+  function skyView(phase) {
+    const SKY = {
+      dawn:    ['#5a5a92', '#f0a97a'],
+      day:     ['#7fb8e8', '#cfe6f5'],
+      dusk:    ['#7a4a86', '#f2915e'],
+      evening: ['#3a3468', '#6a5a92'],
+      night:   ['#20203c', '#3b3358'],
+    }[phase] || ['#20203c', '#3b3358'];
+
+    let body = `<rect x="264" y="86" width="76" height="106" fill="url(#skyDyn)"/>`;
+
+    if (phase === 'day') {
+      body += `<circle cx="316" cy="112" r="13" fill="#fff3b0"/><circle cx="316" cy="112" r="19" fill="#fff3b0" opacity="0.35"/>
+        <ellipse cx="286" cy="140" rx="17" ry="7" fill="#fff" opacity="0.75"/>
+        <ellipse cx="296" cy="136" rx="11" ry="6" fill="#fff" opacity="0.75"/>
+        <ellipse cx="320" cy="164" rx="14" ry="6" fill="#fff" opacity="0.5"/>`;
+    } else if (phase === 'dawn' || phase === 'dusk') {
+      body += `<circle cx="300" cy="150" r="14" fill="#ffd08a"/><circle cx="300" cy="150" r="21" fill="#ffd08a" opacity="0.3"/>
+        <ellipse cx="300" cy="166" rx="34" ry="7" fill="#ffb27a" opacity="0.35"/>
+        <ellipse cx="284" cy="130" rx="15" ry="6" fill="#ffd9c0" opacity="0.55"/>`;
+    } else {
+      body += `<circle cx="320" cy="110" r="11" fill="#fff7e0"/><circle cx="314" cy="106" r="8.5" fill="url(#skyDyn)" opacity="0.6"/>
+        <circle cx="280" cy="104" r="1.5" fill="#fff"/><circle cx="292" cy="126" r="1.2" fill="#fff"/>
+        <circle cx="276" cy="150" r="1.4" fill="#fff"/><circle cx="330" cy="150" r="1.1" fill="#fff"/>
+        <circle cx="300" cy="94" r="1" fill="#fff"/><circle cx="316" cy="172" r="1.2" fill="#fff"/>`;
+    }
+    return { body, SKY };
+  }
+
+  // 마이 룸 배경 — 텔레포트해 온 허름한 연금술 공방 (창문은 우측)
   function roomScene() {
+    const phase = skyPhase();
+    const sky = skyView(phase);
+    // 낮일수록 실내도 조금 밝게
+    const warm = (phase === 'day') ? 0.30 : (phase === 'dawn' || phase === 'dusk') ? 0.24 : 0.14;
+
     return `<svg class="room-svg" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
         <linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#e9d8bd"/><stop offset="1" stop-color="#d2b68d"/>
+          <stop offset="0" stop-color="#cbb99c"/><stop offset="1" stop-color="#9d8a70"/>
         </linearGradient>
         <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#bb8b5a"/><stop offset="1" stop-color="#9a6d40"/>
+          <stop offset="0" stop-color="#7d5c39" stop-opacity="1"/><stop offset="1" stop-color="#5a4026"/>
         </linearGradient>
-        <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#302f5a"/><stop offset="1" stop-color="#5d4e80"/>
+        <linearGradient id="skyDyn" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${sky.SKY[0]}"/><stop offset="1" stop-color="${sky.SKY[1]}"/>
         </linearGradient>
-        <radialGradient id="moonG" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stop-color="#fff7e0"/><stop offset="1" stop-color="#ffe6a4"/>
-        </radialGradient>
-        <radialGradient id="glowG" cx="0.5" cy="0.28" r="0.75">
-          <stop offset="0" stop-color="rgba(255,240,200,0.45)"/><stop offset="1" stop-color="rgba(255,240,200,0)"/>
-        </radialGradient>
         <linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="rgba(255,240,190,0.5)"/><stop offset="1" stop-color="rgba(255,240,190,0)"/>
+          <stop offset="0" stop-color="rgba(255,240,190,${warm})"/><stop offset="1" stop-color="rgba(255,240,190,0)"/>
         </linearGradient>
+        <radialGradient id="vigG" cx="0.5" cy="0.42" r="0.78">
+          <stop offset="0.4" stop-color="rgba(0,0,0,0)"/><stop offset="1" stop-color="rgba(12,8,20,0.42)"/>
+        </radialGradient>
       </defs>
 
       <!-- 돌벽 -->
-      <rect x="0" y="0" width="400" height="238" fill="url(#wallG)"/>
-      <g stroke="rgba(120,90,60,0.14)" stroke-width="2">
-        <line x1="0" y1="70" x2="400" y2="70"/><line x1="0" y1="140" x2="400" y2="140"/><line x1="0" y1="210" x2="400" y2="210"/>
-        <line x1="60" y1="0" x2="60" y2="70"/><line x1="150" y1="0" x2="150" y2="70"/><line x1="250" y1="0" x2="250" y2="70"/><line x1="340" y1="0" x2="340" y2="70"/>
-        <line x1="20" y1="70" x2="20" y2="140"/><line x1="110" y1="70" x2="110" y2="140"/><line x1="300" y1="70" x2="300" y2="140"/><line x1="360" y1="70" x2="360" y2="140"/>
-        <line x1="70" y1="140" x2="70" y2="210"/><line x1="330" y1="140" x2="330" y2="210"/>
+      <rect x="0" y="0" width="400" height="240" fill="url(#wallG)"/>
+      <g stroke="rgba(40,32,26,0.22)" stroke-width="2">
+        <line x1="0" y1="60" x2="400" y2="60"/><line x1="0" y1="120" x2="400" y2="120"/><line x1="0" y1="180" x2="400" y2="180"/>
+        <line x1="60" y1="0" x2="60" y2="60"/><line x1="210" y1="0" x2="210" y2="60"/><line x1="330" y1="0" x2="330" y2="60"/>
+        <line x1="20" y1="60" x2="20" y2="120"/><line x1="140" y1="60" x2="140" y2="120"/><line x1="250" y1="60" x2="250" y2="120"/>
+        <line x1="90" y1="120" x2="90" y2="180"/><line x1="360" y1="120" x2="360" y2="180"/>
       </g>
-      <rect x="0" y="0" width="400" height="238" fill="url(#glowG)"/>
+      <!-- 갈라진 금 -->
+      <path d="M46,66 L56,96 L44,124 L56,158" stroke="rgba(40,32,26,0.28)" stroke-width="2.2" fill="none"/>
+      <path d="M372,130 L362,160 L374,190" stroke="rgba(40,32,26,0.22)" stroke-width="1.8" fill="none"/>
+      <!-- 거미줄 (좌상단) -->
+      <g stroke="rgba(255,255,255,0.16)" stroke-width="1.4" fill="none">
+        <path d="M0,0 L52,52 M0,26 L52,52 M26,0 L52,52"/>
+        <path d="M10,10 Q24,16 28,28 M20,20 Q34,26 38,38"/>
+      </g>
+
+      <!-- 우측 아치 창문 (아바타 머리와 겹치지 않도록) -->
+      <path d="M256,196 L256,120 A46,46 0 0 1 348,120 L348,196 Z" fill="#4a3a2c"/>
+      <path d="M264,192 L264,122 A38,38 0 0 1 340,122 L340,192 Z" fill="#2a2438"/>
+      <clipPath id="winClip"><path d="M264,192 L264,122 A38,38 0 0 1 340,122 L340,192 Z"/></clipPath>
+      <g clip-path="url(#winClip)">${sky.body}</g>
+      <line x1="302" y1="84" x2="302" y2="192" stroke="#4a3a2c" stroke-width="5"/>
+      <line x1="264" y1="150" x2="340" y2="150" stroke="#4a3a2c" stroke-width="5"/>
+      <path d="M256,196 L348,196 L352,204 L252,204 Z" fill="#4a3a2c"/>
+
+      <!-- 낡은 선반 + 약병 (좌측) -->
+      <rect x="24" y="176" width="92" height="7" rx="2" fill="#4a3a2c"/>
+      <rect x="38" y="152" width="13" height="24" rx="4" fill="#5f7a6a"/>
+      <rect x="60" y="158" width="12" height="18" rx="5" fill="#7a5f6a"/>
+      <rect x="82" y="148" width="12" height="28" rx="4" fill="#6a6a4a"/>
 
       <!-- 나무 바닥 -->
       <rect x="0" y="235" width="400" height="85" fill="url(#floorG)"/>
-      <rect x="0" y="235" width="400" height="6" fill="#8a6038"/>
-      <g stroke="#8a6038" stroke-width="2" opacity="0.75">
+      <rect x="0" y="235" width="400" height="6" fill="#43331f"/>
+      <g stroke="#43331f" stroke-width="2" opacity="0.55">
         <line x1="120" y1="241" x2="70" y2="320"/><line x1="200" y1="241" x2="200" y2="320"/><line x1="280" y1="241" x2="330" y2="320"/>
         <line x1="40" y1="241" x2="-40" y2="320"/><line x1="360" y1="241" x2="440" y2="320"/>
       </g>
-      <line x1="0" y1="280" x2="400" y2="280" stroke="#8a6038" stroke-width="1.5" opacity="0.55"/>
+      <line x1="0" y1="280" x2="400" y2="280" stroke="#43331f" stroke-width="1.5" opacity="0.5"/>
 
-      <!-- 아치 창문 + 달 -->
-      <path d="M158,150 L158,74 A42,42 0 0 1 242,74 L242,150 Z" fill="#5b4636"/>
-      <path d="M164,147 L164,76 A36,36 0 0 1 236,76 L236,147 Z" fill="url(#skyG)"/>
-      <circle cx="220" cy="70" r="12" fill="url(#moonG)"/>
-      <circle cx="214" cy="66" r="9" fill="url(#skyG)" opacity="0.5"/>
-      <circle cx="180" cy="66" r="1.5" fill="#fff"/><circle cx="192" cy="54" r="1.2" fill="#fff"/><circle cx="176" cy="118" r="1.3" fill="#fff"/>
-      <line x1="200" y1="34" x2="200" y2="148" stroke="#5b4636" stroke-width="4"/>
-      <line x1="164" y1="102" x2="236" y2="102" stroke="#5b4636" stroke-width="4"/>
-
-      <!-- 달빛 줄기 (바닥 위로) -->
-      <path d="M172,150 L228,150 L262,300 L138,300 Z" fill="url(#beamG)" opacity="0.55"/>
+      <!-- 창에서 들어오는 빛 -->
+      <path d="M268,196 L338,196 L376,320 L236,320 Z" fill="url(#beamG)"/>
+      <!-- 어두운 비네트 -->
+      <rect x="0" y="0" width="400" height="320" fill="url(#vigG)"/>
     </svg>`;
   }
 

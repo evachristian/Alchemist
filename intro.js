@@ -106,9 +106,14 @@
       mouth = `<ellipse cx="150" cy="191" rx="4" ry="3" fill="#b5566a"/>`;
     } else if (mood === 'dizzy') {
       // 텔레포트 후유증: 빙글빙글 도는 눈
-      eyes = `<g class="i-dizzy" fill="none" stroke="#4a3a42" stroke-width="2.2" stroke-linecap="round">
-          <path d="M138,176 m0,-7 a7,7 0 1 1 -5,12 a4.5,4.5 0 1 1 5,-7.5 a2.4,2.4 0 1 1 -2,3"/>
-          <path d="M162,176 m0,-7 a7,7 0 1 1 -5,12 a4.5,4.5 0 1 1 5,-7.5 a2.4,2.4 0 1 1 -2,3"/>
+      // 두 눈이 '각자 제자리에서' 회전하도록 눈마다 그룹 + 회전 중심 지정
+      eyes = `<g fill="none" stroke="#4a3a42" stroke-width="2.2" stroke-linecap="round">
+          <g class="i-dizzy" style="transform-box:view-box; transform-origin:138px 176px">
+            <path d="M138,176 m0,-7 a7,7 0 1 1 -5,12 a4.5,4.5 0 1 1 5,-7.5 a2.4,2.4 0 1 1 -2,3"/>
+          </g>
+          <g class="i-dizzy" style="transform-box:view-box; transform-origin:162px 176px">
+            <path d="M162,176 m0,-7 a7,7 0 1 1 -5,12 a4.5,4.5 0 1 1 5,-7.5 a2.4,2.4 0 1 1 -2,3"/>
+          </g>
         </g>`;
       mouth = `<ellipse cx="150" cy="193" rx="6.5" ry="5" fill="#b5566a"/>`;
       extra = `<g fill="#ff9db4" opacity="0.5"><ellipse cx="126" cy="188" rx="7" ry="4.6"/><ellipse cx="174" cy="188" rx="7" ry="4.6"/></g>`;
@@ -449,7 +454,8 @@
     try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {}
     el.classList.add('hide');
     setTimeout(() => {
-      if (el.parentNode) el.parentNode.removeChild(el);
+      el.style.display = 'none';     // 제거하지 않고 숨김 → 다시보기 가능
+      el.classList.remove('hide');
       // 인트로 종료 → 공방 탭으로
       if (typeof window.switchTab === 'function') window.switchTab('atelier');
       if (onDone) onDone();
@@ -461,11 +467,12 @@
   }
 
   // 최초 진입일 때만 시작. 이미 봤으면 false 반환.
-  function start(cb) {
+  function start(cb, force) {
     onDone = cb;
     const el = document.getElementById('intro');
     if (!el) return false;
-    if (hasSeen()) { if (el.parentNode) el.parentNode.removeChild(el); return false; }
+    if (hasSeen() && !force) { el.style.display = 'none'; return false; }
+    el.classList.remove('hide');
     el.style.display = 'flex';
     idx = 0;
     auto = true;                       // 기본 켜짐
