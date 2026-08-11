@@ -171,7 +171,7 @@ const WARDROBE = {
   ],
   dress: [
     { id: 'dress_none',     slot: 'dress', kind: 'none',  name: '없음' },
-    { id: 'dress_princess', slot: 'dress', kind: 'aline', name: '공주 드레스', color: '#7fa06a', starter: true },
+    { id: 'dress_princess', slot: 'dress', kind: 'princess', name: '공주 드레스', color: '#7fa06a', starter: true },
     { id: 'dress_onepiece', slot: 'dress', kind: 'aline', name: '원피스', color: '#ffc2e2' },
     { id: 'dress_gown',     slot: 'dress', kind: 'gown',  name: '드레스', color: '#b8d4ff' },
   ],
@@ -222,7 +222,7 @@ const ENERGY = {
 
 // 새 캐릭터 기본 착장
 const DEFAULT_OUTFIT = {
-  hair: 'hair_long', hairColor: 'hcol_brown', expression: 'exp_smile', tattoo: 'tattoo_none',
+  hair: 'hair_long', hairColor: 'hcol_brown', expression: 'exp_happy', tattoo: 'tattoo_none',
   top: 'top_tee', bottom: 'bottom_skirt', dress: 'dress_princess',
   circlet: 'circlet_none', earring: 'earring_none', necklace: 'necklace_none',
 };

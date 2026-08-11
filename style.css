@@ -356,25 +356,27 @@ body {
 
 /* ─── 옷장 ─── */
 .wardrobe { background: var(--card); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); }
-/* 슬롯 탭: 항목이 많아 가로로 넘침 → 좌우 스크롤 (터치 드래그 / 휠 / 스크롤바) */
-.wr-tabs, .rb-tabs {
+/* ─── 카테고리 탭 (공용) — UI_POLICY.md 참고 ───
+   가로로 넘치는 탭 줄의 표준 스타일. 새 카테고리 탭도 .cat-tabs / .cat-tab 을 쓸 것.
+   스크롤바는 표시하지 않는다. 마지막 버튼이 잘려 보이는 것 자체가 '더 있다'는 신호다.
+   (스크롤은 터치 드래그 · 마우스 휠 · 끌기로 — setupTabScroll() 이 자동으로 붙인다) */
+.cat-tabs {
   display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden;
-  padding-bottom: 6px; margin-bottom: 3px;
   -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
-  scrollbar-width: thin; scrollbar-color: var(--pink-2) transparent;
+  scrollbar-width: none;                       /* Firefox */
 }
-.wr-tabs::-webkit-scrollbar, .rb-tabs::-webkit-scrollbar { height: 4px; }
-.wr-tabs::-webkit-scrollbar-track, .rb-tabs::-webkit-scrollbar-track { background: transparent; }
-.wr-tabs::-webkit-scrollbar-thumb, .rb-tabs::-webkit-scrollbar-thumb { background: var(--pink-2); border-radius: 999px; }
-.wr-tabs.dragging, .rb-tabs.dragging { cursor: grabbing; user-select: none; }
-.rb-tabs { margin: 8px 0 4px; }
-.wr-tab, .rb-tab {
+.cat-tabs::-webkit-scrollbar { display: none; } /* WebKit */
+.cat-tabs.dragging { cursor: grabbing; user-select: none; }
+/* 줄별 여백만 개별 지정 */
+.wr-tabs { margin-bottom: 9px; }
+.rb-tabs { margin: 8px 0 6px; }
+.cat-tab {
   flex: 0 0 auto; border: none; background: var(--cream); color: var(--ink-soft);
   font-weight: 800; font-size: 0.76rem; padding: 6px 12px; border-radius: 999px; cursor: pointer;
   font-family: inherit; transition: background 0.15s ease, color 0.15s ease;
 }
-.wr-tab.active, .rb-tab.active { background: var(--pink-2); color: var(--ink); }
-.wr-tab.dim { color: var(--ink-dim); opacity: 0.7; }   /* 비활성 — 정책 예외 */
+.cat-tab.active { background: var(--pink-2); color: var(--ink); }
+.cat-tab.dim { color: var(--ink-dim); opacity: 0.7; }   /* 비활성 — 정책 예외 */
 .wr-hint { font-size: 0.68rem; color: var(--ink-soft); margin: 2px 2px 8px; line-height: 1.35; }
 .wr-items { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .wr-item {

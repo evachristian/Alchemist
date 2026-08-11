@@ -357,6 +357,8 @@ function render() {
   if (currentTab === 'gather') renderGather();
   if (currentTab === 'atelier') renderAtelier();
   if (currentTab === 'showcase') renderShowcase();
+  // 새로 그려진 카테고리 탭 줄에 좌우 스크롤을 자동으로 붙인다
+  document.querySelectorAll('.cat-tabs').forEach(setupTabScroll);
 }
 
 function renderHeader() {
@@ -432,9 +434,8 @@ function renderAtelier() {
   const catEl = document.getElementById('recipeTabs');
   if (catEl) {
     catEl.innerHTML = D.RECIPE_CATS.map(c =>
-      `<button class="rb-tab ${recipeTab === c.id ? 'active' : ''}" onclick="setRecipeTab('${c.id}')">${N(c.id + '_cat', c.label)}</button>`
+      `<button class="cat-tab rb-tab ${recipeTab === c.id ? 'active' : ''}" onclick="setRecipeTab('${c.id}')">${N(c.id + '_cat', c.label)}</button>`
     ).join('');
-    setupTabScroll(catEl);
   }
   const cat = D.RECIPE_CATS.find(c => c.id === recipeTab) || D.RECIPE_CATS[0];
   // 알아낸 레시피를 위로 (방금 알아낸 것이 가장 위), ??? 는 아래로
@@ -614,7 +615,7 @@ function renderWardrobe() {
 
   const tabs = D.WARDROBE_SLOTS.map(m => {
     const dimmed = dressed && (m.slot === 'top' || m.slot === 'bottom');
-    return `<button class="wr-tab ${wardrobeTab === m.slot ? 'active' : ''} ${dimmed ? 'dim' : ''}"
+    return `<button class="cat-tab wr-tab ${wardrobeTab === m.slot ? 'active' : ''} ${dimmed ? 'dim' : ''}"
       onclick="setWardrobeTab('${m.slot}')">${m.emoji} ${N(m.slot, m.label)}</button>`;
   }).join('');
 
@@ -643,11 +644,11 @@ function renderWardrobe() {
   const hint = dressed && (wardrobeTab === 'top' || wardrobeTab === 'bottom')
     ? `<div class="wr-hint">${T('dress_hint')}</div>` : '';
 
-  el.innerHTML = `<div class="wr-tabs">${tabs}</div>${hint}<div class="wr-items">${items}</div>${foot}`;
-  setupTabScroll(el.querySelector('.wr-tabs'));
+  el.innerHTML = `<div class="cat-tabs wr-tabs">${tabs}</div>${hint}<div class="wr-items">${items}</div>${foot}`;
 }
 
-// 슬롯 탭 줄의 좌우 스크롤
+// 카테고리 탭 줄(.cat-tabs)의 좌우 스크롤 — UI_POLICY.md 참고
+// 스크롤바는 감추고, 마지막 버튼이 잘려 보이는 것으로 '더 있다'를 알린다.
 // 터치는 브라우저 기본 스크롤을 쓰고, 데스크톱을 위해 마우스 휠 / 끌어서 스크롤을 더한다.
 // (렌더할 때마다 새 요소가 만들어지므로 요소마다 한 번씩 붙인다)
 function setupTabScroll(el) {

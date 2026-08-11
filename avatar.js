@@ -178,6 +178,36 @@
   function renderDress(it) {
     if (isNone(it)) return '';
     const c = it.color, c2 = shade(c);
+
+    // 튜토리얼 인트로의 공주 드레스 — 어깨에서 발목까지 내려오는 종 모양 + 소매
+    // (인트로 princessFront 의 실루엣을 아바타 좌표계로 옮긴 것)
+    if (it.kind === 'princess') {
+      return `<g data-part="dress">
+        <!-- 몸통 → 발목까지 퍼지는 치마 -->
+        <path d="M66,124 C66,115 82,110 100,110 C118,110 134,115 134,124
+          C142,178 152,270 157,337 C138,347 62,347 43,337
+          C48,270 58,178 66,124 Z" fill="${c}"/>
+        <!-- 허리 라인 -->
+        <path d="M72,196 L128,196" stroke="${c2}" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- 밑단 -->
+        <path d="M46,326 C70,334 130,334 154,326" stroke="${c2}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- 목선 -->
+        <path d="M88,113 Q100,122 112,113" stroke="${c2}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <!-- 팔(소매) — 드레스 위로 드리워짐. 인트로처럼 몸 옆선 바깥으로 -->
+        <path d="M70,126 C52,148 44,180 46,208" stroke="${c}" stroke-width="21"
+              fill="none" stroke-linecap="round"/>
+        <path d="M130,126 C148,148 156,180 154,208" stroke="${c}" stroke-width="21"
+              fill="none" stroke-linecap="round"/>
+        <path d="M70,126 C52,148 44,180 46,208" stroke="${c2}" stroke-width="1.6"
+              fill="none" stroke-linecap="round" opacity="0.45"/>
+        <path d="M130,126 C148,148 156,180 154,208" stroke="${c2}" stroke-width="1.6"
+              fill="none" stroke-linecap="round" opacity="0.45"/>
+        <!-- 손 -->
+        <circle cx="46" cy="214" r="9" fill="${SKIN}"/>
+        <circle cx="154" cy="214" r="9" fill="${SKIN}"/>
+      </g>`;
+    }
+
     const hemY = it.kind === 'gown' ? 320 : 270, flare = it.kind === 'gown' ? 40 : 46;
     return `
       <rect x="50" y="118" width="19" height="42" rx="9" fill="${c}" transform="rotate(7 59 130)"/>
