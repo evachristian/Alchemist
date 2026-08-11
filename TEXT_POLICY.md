@@ -9,10 +9,14 @@
 브라우저 콘솔에서
   checkTextStyle()             // 지금 보이는 화면 검사
   checkTextStyle({ all:true }) // 숨겨진 탭·모달까지 강제 검사
+  checkUI()                    // 모든 언어로 대비 + 레이아웃을 한 번에 (UI_POLICY.md)
 
 또는 URL 뒤에 ?a11y=1 을 붙이면 로드 직후 자동 실행
   index.html?a11y=1
 ```
+
+> `a11y.js` 에는 글자 대비 검증(`checkTextStyle`)과 레이아웃 검증(`checkLayout`)이 함께 들어 있다.
+> 레이아웃 규칙은 [UI_POLICY.md](UI_POLICY.md) 참고.
 
 위반이 있으면 콘솔에 표로 뜬다 — `선택자 / 텍스트 / 글자색 / 배경색 / 대비 / 크기 / 위반 사유`.
 **색이나 글자 크기를 손댔으면 커밋 전에 한 번 돌려서 0건인지 확인할 것.**

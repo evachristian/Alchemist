@@ -3,6 +3,9 @@
 // ═══════════════════════════════════════════════════════════════
 const D = window.GameData;
 const SAVE_KEY = 'dieter_alchemist_save_v1';
+// 세이브 버전 — 기본값을 바꿨을 때 예전 세이브에도 한 번 반영하기 위해 사용
+//  1: 최초  /  2: 시작 외형을 튜토리얼 인트로의 공주(갈색 긴 머리 + 연두 드레스)로 통일
+const SAVE_VER = 2;
 
 // ─── i18n 단축 헬퍼 (i18n.js 없으면 한국어 원문 유지) ───
 const T  = (k, v) => (window.I18N ? I18N.t(k, v) : k);
@@ -23,6 +26,7 @@ const defaultState = () => ({
   energy:    D.ENERGY.cap,  // 현재 에너지 (행동력)
   energyDay: dayKey(),      // 마지막 충전 기준 로컬 날짜 키 (YYYYMMDD)
   name:      '',            // 연금술사 이름 (튜토리얼 종료 후 입력)
+  ver:       SAVE_VER,      // 세이브 버전 (마이그레이션용)
 });
 
 let S = load();
@@ -31,15 +35,31 @@ function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (raw) {
-      const st = Object.assign(defaultState(), JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      const st = Object.assign(defaultState(), parsed);
       st.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, st.outfit || {});
       if (!Array.isArray(st.unlocked)) st.unlocked = [];
+      // 버전은 '저장된 값' 에서 읽어야 한다.
+      // (defaultState 가 최신 버전을 채워 넣으므로 병합 후의 st.ver 로는 판별할 수 없음)
+      migrate(st, parsed.ver || 1);
       return st;
     }
   } catch (e) { console.warn('load failed', e); }
   return defaultState();
 }
 function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
+
+// 예전 세이브에 새 기본값을 한 번만 적용한다.
+// (저장된 값이 항상 기본값을 덮어쓰기 때문에, 기본값만 바꾸면 기존 플레이어에게는 반영되지 않는다)
+function migrate(st, from) {
+  if (from >= SAVE_VER) return;
+  if (from < 2) {
+    // 시작 외형을 튜토리얼 인트로의 공주로 맞춘다 (옷은 언제든 다시 갈아입을 수 있음)
+    st.outfit = { ...D.DEFAULT_OUTFIT };
+  }
+  st.ver = SAVE_VER;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
+}
 
 // ─── 유틸 ───
 function invCount(id) { return S.inventory[id] || 0; }

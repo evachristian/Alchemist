@@ -165,8 +165,152 @@
     return el.tagName.toLowerCase() + (cls ? '.' + cls : '');
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  레이아웃 검증 — 문구 길이가 달라져도 겹치거나 깨지지 않는가
+  //  (언어를 추가하면 라벨 길이가 달라진다. UI_POLICY.md '가변 폭' 규칙)
+  // ═══════════════════════════════════════════════════════════════
+  const LAYOUT = {
+    tolerance: 0.5,                       // 반올림 오차 허용 (px)
+    // 검사 대상 — 눌리는 요소와 값이 바뀌는 텍스트
+    targetSelector: 'button, .cat-tab, .set-opt, .room-tab, .tab-btn, .spot-card, .stat-box,'
+      + ' .recipe-row, .wr-item, .ing-chip, .potion-card, .clock-item, .wr-count, .recipe-progress',
+    // 넘쳐도 되는 곳 — 가로 스크롤이 설계된 컨테이너
+    scrollerSelector: '.cat-tabs',
+  };
+
+  function rectOf(el) { return el.getBoundingClientRect(); }
+  function overlaps(a, b, tol) {
+    return a.left < b.right - tol && b.left < a.right - tol
+        && a.top < b.bottom - tol && b.top < a.bottom - tol;
+  }
+  function positioned(el) {
+    const pos = getComputedStyle(el).position;
+    return pos === 'absolute' || pos === 'fixed' || pos === 'sticky';
+  }
+
+  function checkLayout(opts) {
+    opts = opts || {};
+    const tol = LAYOUT.tolerance;
+    const found = [];
+    const add = (kind, el, detail, level) =>
+      found.push({ 종류: kind, 선택자: selectorOf(el), 텍스트: (ownText(el) || el.textContent || '').trim().slice(0, 16),
+                   내용: detail, 수준: level || '위반', el });
+
+    const targets = [...document.querySelectorAll(LAYOUT.targetSelector)].filter(visible);
+
+    // ① 형제끼리 겹침 — 같은 부모 아래 나란히 놓인 요소는 절대 겹치면 안 된다
+    const byParent = new Map();
+    for (const el of targets) {
+      if (positioned(el)) continue;
+      const p = el.parentElement;
+      if (!p) continue;
+      if (!byParent.has(p)) byParent.set(p, []);
+      byParent.get(p).push(el);
+    }
+    for (const [, sibs] of byParent) {
+      for (let i = 0; i < sibs.length; i++) {
+        for (let j = i + 1; j < sibs.length; j++) {
+          if (sibs[i].contains(sibs[j]) || sibs[j].contains(sibs[i])) continue;
+          const a = rectOf(sibs[i]), b = rectOf(sibs[j]);
+          if (overlaps(a, b, tol)) {
+            add('겹침', sibs[i], `${selectorOf(sibs[j])} 와 겹침 (${Math.round(Math.min(a.right, b.right) - Math.max(a.left, b.left))}px)`);
+          }
+        }
+      }
+    }
+
+    // ② 부모 밖으로 삐져나감 (가로 스크롤 컨테이너 안은 설계상 정상)
+    for (const el of targets) {
+      if (positioned(el)) continue;
+      const p = el.parentElement;
+      if (!p || el.closest(LAYOUT.scrollerSelector)) continue;
+      const pr = rectOf(p), r = rectOf(el);
+      const ps = getComputedStyle(p);
+      if (ps.overflowX === 'auto' || ps.overflowX === 'scroll') continue;
+      const padL = parseFloat(ps.paddingLeft) || 0, padR = parseFloat(ps.paddingRight) || 0;
+      const over = Math.max(r.right - (pr.right - padR), (pr.left + padL) - r.left);
+      if (over > tol) add('넘침', el, `부모(${selectorOf(p)}) 밖으로 ${Math.round(over)}px`);
+    }
+
+    // ③ 라벨 잘림 — 말줄임으로 버티고는 있지만 글자를 다 못 읽는 상태
+    for (const el of targets) {
+      if (getComputedStyle(el).whiteSpace !== 'nowrap') continue;
+      const cut = el.scrollWidth - el.clientWidth;
+      if (cut > 1) add('잘림', el, `라벨이 ${Math.round(cut)}px 잘림`, '주의');
+    }
+
+    // ④ 페이지 자체에 가로 스크롤이 생겼는가
+    const de = document.documentElement;
+    if (de.scrollWidth - de.clientWidth > 1) {
+      found.push({ 종류: '가로스크롤', 선택자: '(문서)', 텍스트: '',
+        내용: `문서가 뷰포트보다 ${de.scrollWidth - de.clientWidth}px 넓음`, 수준: '위반', el: document.body });
+    }
+
+    const violations = found.filter(f => f.수준 === '위반');
+    if (found.length && typeof console.table === 'function') {
+      console.groupCollapsed(`[레이아웃] 위반 ${violations.length}건 / 주의 ${found.length - violations.length}건`);
+      console.table(found.map(({ el, ...r }) => r));
+      console.groupEnd();
+    } else if (!found.length) {
+      console.log('[레이아웃] 이상 없음 ✅');
+    }
+    return { pass: violations.length === 0, count: violations.length, rows: found };
+  }
+
+  // 라벨을 인위적으로 늘려 '더 긴 언어'를 흉내 낸다 (되돌리는 함수를 반환)
+  function stressLabels(factor) {
+    const saved = [];
+    for (const el of document.querySelectorAll(LAYOUT.targetSelector)) {
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = w.nextNode())) {
+        const t = n.nodeValue;
+        if (!t || !t.trim()) continue;
+        saved.push([n, t]);
+        n.nodeValue = new Array(factor).fill(t.trim()).join(' ');
+      }
+    }
+    return () => saved.forEach(([n, t]) => { n.nodeValue = t; });
+  }
+
+  // 모든 언어 + 라벨을 늘린 상태까지 한 번에 검사
+  async function checkUI(opts) {
+    opts = opts || {};
+    const stress = opts.stress || 2;      // 기본: 라벨 길이 2배까지 견디는지
+    const frame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const langs = (window.I18N ? I18N.langs().map(l => l.code) : ['ko']);
+    const before = window.I18N ? I18N.getLang() : null;
+    const report = [];
+
+    for (const code of langs) {
+      if (window.I18N) I18N.setLang(code);
+      await frame();
+      const text = checkTextStyle();
+      const layout = checkLayout();
+      report.push({ 언어: code, 배율: '1x', 대비위반: text.count, 레이아웃위반: layout.count });
+
+      const restore = stressLabels(stress);
+      await frame();
+      const stressed = checkLayout();
+      restore();
+      await frame();
+      report.push({ 언어: code, 배율: stress + 'x', 대비위반: '-', 레이아웃위반: stressed.count });
+      if (stressed.count) report.stressRows = (report.stressRows || []).concat(stressed.rows);
+    }
+    if (before && window.I18N) { I18N.setLang(before); await frame(); }
+
+    const total = report.reduce((n, r) => n + (Number(r.대비위반) || 0) + (Number(r.레이아웃위반) || 0), 0);
+    console.table(report);
+    console.log(total === 0 ? '[UI 정책] 전체 통과 ✅' : `[UI 정책] 총 ${total}건 확인 필요`);
+    return { pass: total === 0, total, report };
+  }
+
   window.checkTextStyle = checkTextStyle;
+  window.checkLayout = checkLayout;
+  window.__stress = stressLabels;   // 테스트용: 라벨 길이를 배로 늘림
+  window.checkUI = checkUI;
   window.TEXT_POLICY = POLICY;
+  window.LAYOUT_POLICY = LAYOUT;
 
   // ?a11y=1 이면 로드 후 자동 검사
   if (/[?&]a11y=1/.test(location.search)) {
