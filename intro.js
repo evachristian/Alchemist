@@ -247,9 +247,25 @@
     // 완드: 손(302,268)을 축으로 회전 → 항상 손에 쥔 상태
     const tap = pose === 'tap';
     const cast = pose === 'cast' || pose === 'castbig' || tap;
-    // 표정: 기본은 걱정, 'smile'/'castbig'은 미소
+    // 표정: 기본은 걱정, 'smile'/'castbig'은 미소, 'glance'는 공주 쪽 곁눈질
     const happy = pose === 'smile' || pose === 'castbig';
-    const face = happy
+    const glance = pose === 'glance';
+    // 곁눈질 — 흰자 위에서 눈동자가 공주(왼쪽) 쪽으로 굴러간다
+    const glanceFace = `
+      <path d="M316,176 Q322,172 327,176" stroke="#8a7a86" stroke-width="2.2" fill="none" stroke-linecap="round" transform="rotate(-14 321.5 174)"/>
+      <path d="M333,176 Q338,172 344,176" stroke="#8a7a86" stroke-width="2.2" fill="none" stroke-linecap="round" transform="rotate(10 338.5 174)"/>
+      <ellipse cx="322" cy="187" rx="6.2" ry="6.6" fill="#fffdfd" stroke="#d8d0dc" stroke-width="0.9"/>
+      <ellipse cx="338" cy="187" rx="6.2" ry="6.6" fill="#fffdfd" stroke="#d8d0dc" stroke-width="0.9"/>
+      <g class="i-glance">
+        <ellipse cx="322" cy="187" rx="3.5" ry="4.6" fill="#4a3a42"/>
+        <ellipse cx="338" cy="187" rx="3.5" ry="4.6" fill="#4a3a42"/>
+        <circle cx="323" cy="185.2" r="1.2" fill="#fff"/><circle cx="339" cy="185.2" r="1.2" fill="#fff"/>
+      </g>
+      <ellipse cx="313" cy="195" rx="5" ry="3.4" fill="#ffb0c4" opacity="0.6"/>
+      <ellipse cx="347" cy="195" rx="5" ry="3.4" fill="#ffb0c4" opacity="0.6"/>
+      <!-- 살짝 삐딱한 입 (미심쩍은 표정) -->
+      <path d="M324,201 Q329,198 336,200" stroke="#c97b86" stroke-width="2.1" fill="none" stroke-linecap="round"/>`;
+    const face = glance ? glanceFace : happy
       ? `<path d="M315,177 Q322,174 328,178" stroke="#8a7a86" stroke-width="2.2" fill="none" stroke-linecap="round"/>
          <path d="M332,178 Q338,174 345,177" stroke="#8a7a86" stroke-width="2.2" fill="none" stroke-linecap="round"/>
          <path d="M317,188 Q322,182 327,188" stroke="#4a3a42" stroke-width="2.8" fill="none" stroke-linecap="round"/>
@@ -332,7 +348,7 @@
     { art: () => bg() + P(princessEating()), sp: 'sp_narrator', key: 'intro_1', sfx: 'chew' },
     { art: () => bg() + P(princessEating()) + F(fairy('idle')) + sparkles(7, 300, 370, 130), sp: 'sp_fairy', key: 'intro_2', sfx: 'sparkle' },
     // 이마에 왕 땀 — "뚝…"
-    { art: () => bg() + P(princessFront('shy', false, true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_3', sfx: 'sweat', sfx2: ['sweat', 950] },
+    { art: () => bg() + P(princessFront('shy', false, true)) + F(fairy('glance')), sp: 'sp_princess', key: 'intro_3', sfx: 'sweat', sfx2: ['sweat', 950] },
     { art: () => bg() + P(princessFront('shy')) + F(fairy('idle')) + sparkles(6, 300, 380, 120), sp: 'sp_fairy', key: 'intro_4', sfx: 'sparkle' },
     // "?!" — 놀라는 소리 "허억?"
     { art: () => bg() + P(princessFront('ask', true)) + F(fairy('idle')), sp: 'sp_princess', key: 'intro_5', sfx: 'gasp' },
@@ -361,9 +377,9 @@
   // ─── 엔딩: 이름을 지은 뒤 요정 대모의 마무리 대사 → '시작하기' ───
   let endName = '';
   const ENDING = [
-    { art: () => bg2() + P(princessFront('smile')) + F(fairy('idle')) + bigCauldron() + sparkles(10, 300, 460, 170),
+    { art: () => bg2() + P(princessFront('smile')) + F(fairy('smile')) + bigCauldron() + sparkles(10, 300, 460, 170),
       sp: 'sp_fairy', key: 'name_ok', vars: () => ({ name: endName }), sfx: 'sparkle' },
-    { art: () => bg2() + P(princessFront('smile')) + F(fairy('idle')) + bigCauldron() + sparkles(8, 280, 450, 190),
+    { art: () => bg2() + P(princessFront('smile')) + F(fairy('smile')) + bigCauldron() + sparkles(8, 280, 450, 190),
       sp: 'sp_fairy', key: 'intro_start_q', end: true, sfx: 'sparkle' },
   ];
 
@@ -641,9 +657,9 @@
     setTimeout(() => {
       el.style.display = 'none';     // 제거하지 않고 숨김 → 다시보기 가능
       el.classList.remove('hide');
-      // 최초 진입이면 시나리오대로 '공방', 다시보기면 보던 화면으로 복귀
+      // 최초 진입이면 '마이 룸', 다시보기면 보던 화면으로 복귀
       if (typeof window.switchTab === 'function') {
-        window.switchTab(isReplay && prevTab ? prevTab : 'atelier');
+        window.switchTab(isReplay && prevTab ? prevTab : 'showcase');
       }
       isReplay = false; prevTab = null;
       list = SCENES;                 // 다음 재생을 위해 본편으로 복귀

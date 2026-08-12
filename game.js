@@ -330,12 +330,12 @@ function drinkPotion(potionId) {
   save();
   toast(T('drank', { emoji: r.result.emoji, name: N(r.result.id, r.result.name), b: r.result.beauty, c: r.result.charm }));
   render();
-  // 물약을 마셔 체형 단계가 내려갔으면 알려준다
+  // 살 빠지는 연출 — 단계가 내려가면 크게, 아니면 반짝임만
   const afterBody = bodyLevel();
+  playSlimFx(afterBody < beforeBody ? (afterBody === 0 ? 'done' : 'step') : 'sip');
   if (afterBody < beforeBody) {
     setTimeout(() => {
       toast(T(afterBody === 0 ? 'body_done' : 'body_down'), null, 2600);
-      if (window.Sfx) Sfx.play('sparkle');
     }, 1500);
   }
 }
@@ -503,8 +503,11 @@ function renderShowcase() {
     <div class="room-scene">${sceneSvg}</div>
     <div class="char-aura" style="--glow:${Math.min(total, 100)}">
       <div class="char-body">${avatarSvg}</div>
+      <div id="slimFx" class="slim-fx"></div>
       <div class="stage-creatures">${creatureEmojis}</div>
     </div>`;
+  // 물약을 마신 직후면 살 빠지는 연출을 이어서 재생
+  if (pendingSlimFx) { const lv = pendingSlimFx; pendingSlimFx = null; playSlimFx(lv); }
 
   // 옷장
   renderWardrobe();
@@ -709,6 +712,43 @@ function setupTabScroll(el) {
   el.addEventListener('click', e => {
     if (moved > 6) { e.stopPropagation(); e.preventDefault(); moved = 0; }
   }, true);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  살 빠지는 연출 (물약을 마셨을 때)
+//   sip  — 마시기만 함: 가벼운 반짝임
+//   step — 체형 단계가 한 칸 내려감: 몸이 쏙 줄어드는 연출 + 반짝이
+//   done — 완전히 날씬해짐: 가장 크게
+// ═══════════════════════════════════════════════════════════════
+let pendingSlimFx = null;      // render() 로 아바타가 다시 그려진 뒤 재생하려고 보관
+
+function playSlimFx(level) {
+  const box = document.getElementById('slimFx');
+  const body = document.querySelector('#charStage .char-body');
+  if (!box || !body) { pendingSlimFx = level; return; }   // 마이 룸이 아직 안 그려졌으면 대기
+
+  // 몸이 줄어드는 느낌 (단계가 내려간 경우만)
+  if (level !== 'sip') {
+    body.classList.remove('slim-pop');
+    void body.offsetWidth;                                // 애니메이션 재시작
+    body.classList.add('slim-pop');
+    setTimeout(() => body.classList.remove('slim-pop'), 1200);
+  }
+
+  // 위로 떠오르는 반짝이
+  const n = level === 'done' ? 16 : level === 'step' ? 11 : 5;
+  box.innerHTML = Array.from({ length: n }, (_, i) => {
+    const x = 12 + Math.random() * 76;                    // 아바타 폭 안에서 (%)
+    const delay = (i * 0.07).toFixed(2);
+    const dur = (1.1 + Math.random() * 0.7).toFixed(2);
+    const size = (level === 'sip' ? 9 : 11) + Math.random() * 7;
+    const ch = ['✨', '💫', '⭐'][i % 3];
+    return `<span class="slim-star" style="left:${x.toFixed(1)}%;font-size:${size.toFixed(0)}px;
+      animation-delay:${delay}s;animation-duration:${dur}s">${ch}</span>`;
+  }).join('');
+  setTimeout(() => { if (box) box.innerHTML = ''; }, 2400);
+
+  if (window.Sfx) Sfx.play(level === 'sip' ? 'sparkle' : 'success');
 }
 
 // ─── 과시(공유) ───

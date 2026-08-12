@@ -362,6 +362,28 @@ body {
 @keyframes aura { 0%,100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
 .char-body { position: relative; z-index: 2; font-size: 0; line-height: 0; }
 .avatar-svg { height: 312px; width: auto; display: block; filter: drop-shadow(0 8px 12px rgba(180,140,160,0.28)); }
+
+/* ─── 살 빠지는 연출 (물약을 마셨을 때) ─── */
+/* 몸이 한 번 쏙 줄었다가 제자리로 — 단계가 내려갈 때만 */
+.char-body.slim-pop { animation: slimPop 1.05s cubic-bezier(.3,1.2,.4,1) both; }
+@keyframes slimPop {
+  0%   { transform: scaleX(1)    scaleY(1);    filter: none; }
+  22%  { transform: scaleX(0.88) scaleY(1.03); filter: brightness(1.25) saturate(1.15); }
+  45%  { transform: scaleX(1.04) scaleY(0.99); filter: brightness(1.12); }
+  70%  { transform: scaleX(0.97) scaleY(1.01); }
+  100% { transform: scaleX(1)    scaleY(1);    filter: none; }
+}
+/* 위로 떠오르는 반짝이 */
+.slim-fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; overflow: hidden; }
+.slim-star {
+  position: absolute; bottom: 8%; line-height: 1;
+  animation-name: slimStar; animation-timing-function: ease-out; animation-fill-mode: both;
+}
+@keyframes slimStar {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.4) rotate(0deg); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-150px) scale(1.15) rotate(28deg); }
+}
 .stage-creatures { position: absolute; inset: 0; z-index: 3; }
 .stage-creature { position: absolute; font-size: 1.6rem; animation: float 3s ease-in-out infinite; }
 .stage-creature:nth-child(1) { top: 10%; left: 12%; animation-delay: 0s; }
