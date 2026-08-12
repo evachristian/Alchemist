@@ -38,6 +38,24 @@
   // ═══════════════════════════════════════════════════════════════
   //  바디 파츠 (피부)
   // ═══════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  //  바디 기준 좌표 — 옷은 반드시 이 값을 기준으로 그린다.
+  //  (몸을 고치면 옷도 같이 따라가도록. 체형 변화는 몸/옷을 같은 그룹으로
+  //   함께 늘리므로, 여기만 맞으면 살이 찌든 빠지든 옷이 몸을 덮는다)
+  // ═══════════════════════════════════════════════════════════════
+  const BODY = {
+    neckY: 96, neckBottom: 116,
+    shoulderY: 113,                 // 어깨 윗선
+    torsoL: 64, torsoR: 136,        // 몸통 최대 폭 (어깨)
+    waistY: 196, hipY: 214,
+    // 팔: (x, y=120) 에서 시작하는 폭 armW 의 막대를 어깨 기준으로 회전
+    armX_L: 52, armX_R: 133, armY: 120, armH: 94, armW: 15,
+    armRot: 7, armPivotL: 59, armPivotR: 141, armPivotY: 130,
+    ankleY: 332,
+  };
+  // 옷이 몸을 확실히 덮도록 주는 여유 (한쪽당 px)
+  const CLOTH_PAD = 3;
+
   function legs() {
     return `
       <g data-part="calf">
@@ -175,6 +193,59 @@
     return `<path d="M70,198 L130,198 L127,332 L107,332 L100,222 L93,332 L73,332 Z" fill="${c}"/>`;
   }
 
+  // 소매(팔을 덮는 부분)를 몸의 팔 좌표 그대로 만들어 준다.
+  // len: 팔 길이의 몇 %까지 덮을지 (나머지는 손으로 드러남)
+  function sleeves(c, len) {
+    const B = BODY, pad = CLOTH_PAD;
+    const w = B.armW + pad * 2;                 // 팔보다 좌우로 pad 만큼 넓게
+    const h = B.armH * len + pad;
+    // 손 위치 = 소매 끝을 팔과 같은 각도로 회전시킨 지점
+    const rad = B.armRot * Math.PI / 180;
+    const hand = (px, cx) => {
+      const dx = cx - px, dy = (B.armY + B.armH * len) - B.armPivotY;
+      const sgn = px === B.armPivotL ? 1 : -1;  // 오른팔은 반대로 회전
+      return {
+        x: px + dx * Math.cos(rad) - dy * Math.sin(rad) * sgn,
+        y: B.armPivotY + dx * Math.sin(rad) * sgn + dy * Math.cos(rad),
+      };
+    };
+    const cxL = B.armX_L + B.armW / 2, cxR = B.armX_R + B.armW / 2;
+    const hL = hand(B.armPivotL, cxL), hR = hand(B.armPivotR, cxR);
+    return `
+      <rect x="${B.armX_L - pad}" y="${B.armY - pad}" width="${w}" height="${h}" rx="${w / 2}"
+            fill="${c}" transform="rotate(${B.armRot} ${B.armPivotL} ${B.armPivotY})"/>
+      <rect x="${B.armX_R - pad}" y="${B.armY - pad}" width="${w}" height="${h}" rx="${w / 2}"
+            fill="${c}" transform="rotate(${-B.armRot} ${B.armPivotR} ${B.armPivotY})"/>
+      <circle cx="${hL.x.toFixed(1)}" cy="${hL.y.toFixed(1)}" r="8.5" fill="${SKIN}"/>
+      <circle cx="${hR.x.toFixed(1)}" cy="${hR.y.toFixed(1)}" r="8.5" fill="${SKIN}"/>`;
+  }
+
+  // 몸통을 덮고 hemY 까지 퍼지는 드레스 (+ 팔 소매)
+  function sleevedDress(c, c2, hemY, longSleeve) {
+    const B = BODY, pad = CLOTH_PAD;
+    const L = B.torsoL - pad, R = B.torsoR + pad;         // 어깨는 몸통보다 넓게
+    const flare = 21;                                     // 밑단이 퍼지는 정도
+    const hemL = L - flare, hemR = R + flare;
+    return `<g data-part="dress">
+      <!-- 몸통 → 밑단까지 퍼지는 치마 (어깨 폭은 몸통 기준 + 여유) -->
+      <path d="M${L},${B.shoulderY + 11}
+        C${L},${B.shoulderY} ${L + 16},${B.shoulderY - 5} 100,${B.shoulderY - 5}
+        C${R - 16},${B.shoulderY - 5} ${R},${B.shoulderY} ${R},${B.shoulderY + 11}
+        C${R + 6},${B.waistY - 18} ${hemR - 5},${hemY - 62} ${hemR},${hemY + 5}
+        C${R - 18},${hemY + 15} ${L + 18},${hemY + 15} ${hemL},${hemY + 5}
+        C${hemL + 5},${hemY - 62} ${L - 6},${B.waistY - 18} ${L},${B.shoulderY + 11} Z" fill="${c}"/>
+      <!-- 허리 라인 -->
+      <path d="M${L + 8},${B.waistY} L${R - 8},${B.waistY}" stroke="${c2}" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- 밑단 -->
+      <path d="M${hemL + 3},${hemY - 8} C${L + 12},${hemY + 2} ${R - 12},${hemY + 2} ${hemR - 3},${hemY - 8}"
+            stroke="${c2}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <!-- 목선 -->
+      <path d="M88,${B.shoulderY} Q100,${B.shoulderY + 9} 112,${B.shoulderY}"
+            stroke="${c2}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      ${sleeves(c, longSleeve ? 0.92 : 0.42)}
+    </g>`;
+  }
+
   function renderDress(it) {
     if (isNone(it)) return '';
     const c = it.color, c2 = shade(c);
@@ -182,30 +253,7 @@
     // 튜토리얼 인트로의 공주 드레스 — 어깨에서 발목까지 내려오는 종 모양 + 소매
     // (인트로 princessFront 의 실루엣을 아바타 좌표계로 옮긴 것)
     if (it.kind === 'princess') {
-      return `<g data-part="dress">
-        <!-- 몸통 → 발목까지 퍼지는 치마 -->
-        <path d="M66,124 C66,115 82,110 100,110 C118,110 134,115 134,124
-          C142,178 152,270 157,337 C138,347 62,347 43,337
-          C48,270 58,178 66,124 Z" fill="${c}"/>
-        <!-- 허리 라인 -->
-        <path d="M72,196 L128,196" stroke="${c2}" stroke-width="4.5" stroke-linecap="round"/>
-        <!-- 밑단 -->
-        <path d="M46,326 C70,334 130,334 154,326" stroke="${c2}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-        <!-- 목선 -->
-        <path d="M88,113 Q100,122 112,113" stroke="${c2}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
-        <!-- 팔(소매) — 드레스 위로 드리워짐. 인트로처럼 몸 옆선 바깥으로 -->
-        <path d="M70,126 C52,148 44,180 46,208" stroke="${c}" stroke-width="21"
-              fill="none" stroke-linecap="round"/>
-        <path d="M130,126 C148,148 156,180 154,208" stroke="${c}" stroke-width="21"
-              fill="none" stroke-linecap="round"/>
-        <path d="M70,126 C52,148 44,180 46,208" stroke="${c2}" stroke-width="1.6"
-              fill="none" stroke-linecap="round" opacity="0.45"/>
-        <path d="M130,126 C148,148 156,180 154,208" stroke="${c2}" stroke-width="1.6"
-              fill="none" stroke-linecap="round" opacity="0.45"/>
-        <!-- 손 -->
-        <circle cx="46" cy="214" r="9" fill="${SKIN}"/>
-        <circle cx="154" cy="214" r="9" fill="${SKIN}"/>
-      </g>`;
+      return sleevedDress(c, c2, BODY.ankleY, true);
     }
 
     const hemY = it.kind === 'gown' ? 320 : 270, flare = it.kind === 'gown' ? 40 : 46;
