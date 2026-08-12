@@ -401,6 +401,32 @@ body {
 .stat-box.highlight .stat-label { color: var(--ink); }
 .stat-val { font-size: 1.5rem; font-weight: 900; margin-top: 2px; }
 
+/* ─── 신체 · 아우라 상세 수치 ─── */
+.vitals {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 10px; min-width: 0;
+}
+.vitals-col {
+  background: var(--card); border-radius: 16px; padding: 11px 12px;
+  box-shadow: var(--shadow); min-width: 0;
+}
+.vitals-head {
+  font-size: 0.75rem; font-weight: 800; color: var(--ink-soft);
+  margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid var(--cream);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vitals-list { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.vitals-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; }
+.vitals-row dt {
+  font-size: 0.72rem; font-weight: 700; color: var(--ink-soft);
+  flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vitals-row dd {
+  font-size: 0.74rem; font-weight: 800; color: var(--ink);
+  flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ─── 옷장 ─── */
 .wardrobe { background: var(--card); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); }
 /* ─── 카테고리 탭 (공용) — UI_POLICY.md 참고 ───

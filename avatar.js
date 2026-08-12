@@ -56,6 +56,17 @@
   // 옷이 몸을 확실히 덮도록 주는 여유 (한쪽당 px)
   const CLOTH_PAD = 3;
 
+  // ─── 등신 비율 기준값 ───
+  // 머리(머리카락 끝 ~ 턱) 높이와 몸(어깨 ~ 발) 길이. 이 둘의 비가 등신을 만든다.
+  const HEAD_H   = 84;    // 현재 아트의 머리 높이 (y 21 ~ 105)
+  const BODY_SPAN = 229;  // 어깨(113) ~ 바닥(342)
+  const FLOOR_Y  = 342;   // 발이 닿는 높이 (여기를 축으로 몸을 늘린다)
+  const NECK_Y   = 112;   // 머리를 얹는 목 위치
+  // 머리 크기 배율 — 통통(4.2등신) / 날씬(6.4등신)
+  const HEAD_K_FAT  = 0.89;
+  const HEAD_K_SLIM = 0.59;
+  const lerpN = (a, b, t) => a + (b - a) * t;
+
   function legs() {
     return `
       <g data-part="calf">
@@ -343,11 +354,23 @@
   function build(outfit, body) {
     outfit = outfit || {};
     const w = Math.max(0, Math.min(1, Number(body) || 0));
-    // 몸: 가로로 통통하게 / 머리: 살짝 둥글게
-    const bodyT = `translate(100,0) scale(${(1 + 0.36 * w).toFixed(3)},1) translate(-100,0)`;
-    const headT = `translate(100,70) scale(${(1 + 0.15 * w).toFixed(3)},${(1 + 0.08 * w).toFixed(3)}) translate(-100,-70)`;
-    const B = s => (w && s ? `<g transform="${bodyT}">${s}</g>` : s);   // 몸통 계열
-    const H = s => (w && s ? `<g transform="${headT}">${s}</g>` : s);   // 머리 계열
+
+    // ── 등신 비율 ──────────────────────────────────────────────
+    // 통통할수록 머리가 커 보이는 4~5등신, 날씬할수록 6~7등신에 가까워진다.
+    // 머리는 목을 축으로 줄이고, 그만큼 몸을 세로로 늘려 전체 키는 유지한다.
+    const head = HEAD_H * lerpN(HEAD_K_SLIM, HEAD_K_FAT, w);   // 실제 머리 높이(px)
+    const bodyKy = 1 + (HEAD_H - head) / BODY_SPAN;            // 머리가 줄어든 만큼 몸을 늘림
+    const dy = BODY_SPAN * (1 - bodyKy);                       // 어깨가 올라간 만큼 머리도 따라 올림
+    const headK = head / HEAD_H;
+
+    // 몸: 가로로 통통하게 + 세로로 늘려 다리를 길게 (바닥을 축으로)
+    const bodyT = `translate(100,${FLOOR_Y}) scale(${(1 + 0.36 * w).toFixed(3)},${bodyKy.toFixed(3)}) translate(-100,${-FLOOR_Y})`;
+    // 머리: 목을 축으로 크기 조절 (통통하면 가로로 살짝 더 둥글게)
+    const headT = `translate(0,${dy.toFixed(2)}) translate(100,${NECK_Y}) `
+      + `scale(${(headK * (1 + 0.06 * w)).toFixed(3)},${headK.toFixed(3)}) translate(-100,${-NECK_Y})`;
+    // 체형이 0(날씬)이어도 등신 비율 때문에 변환이 필요하므로 항상 적용한다
+    const B = s => (s ? `<g transform="${bodyT}">${s}</g>` : s);   // 몸통 계열
+    const H = s => (s ? `<g transform="${headT}">${s}</g>` : s);   // 머리 계열
     const dress = getItem('dress', outfit.dress);
     const hasDress = !isNone(dress);
     const top = hasDress ? null : getItem('top', outfit.top);

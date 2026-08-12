@@ -26,6 +26,9 @@ const defaultState = () => ({
   energy:    D.ENERGY.cap,  // 현재 에너지 (행동력)
   energyDay: dayKey(),      // 마지막 충전 기준 로컬 날짜 키 (YYYYMMDD)
   name:      '',            // 연금술사 이름 (튜토리얼 종료 후 입력)
+  // 아우라 세부 수치 (각 0~1000)
+  aura:      { happy: 100, grace: 100, unique: 100, grit: 100 },
+  firstTs:   Date.now(),    // 첫 플레이 시각 — 키 성장의 기준
   ver:       SAVE_VER,      // 세이브 버전 (마이그레이션용)
 });
 
@@ -38,6 +41,8 @@ function load() {
       const parsed = JSON.parse(raw);
       const st = Object.assign(defaultState(), parsed);
       st.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, st.outfit || {});
+      st.aura = Object.assign({ happy: 100, grace: 100, unique: 100, grit: 100 }, st.aura || {});
+      if (!st.firstTs) st.firstTs = Date.now();
       if (!Array.isArray(st.unlocked)) st.unlocked = [];
       // 버전은 '저장된 값' 에서 읽어야 한다.
       // (defaultState 가 최신 버전을 채워 넣으므로 병합 후의 st.ver 로는 판별할 수 없음)
@@ -79,6 +84,70 @@ function bodyLevel(beauty) {
   const step = Math.min(BODY_STEPS, Math.floor(b / BODY_PER_STEP));
   return 1 - step / BODY_STEPS;
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  신체 수치 (체중 · 키 · 체지방 · 근육량)
+//  체형(bodyLevel 1=통통 ~ 0=날씬)과 키에서 계산한다.
+//  아바타는 15살에서 시작해 시간이 지나며 170cm 까지 자란다.
+//  (나이는 화면에 드러나지 않지만, 추후 '회춘 시스템'을 위해 계산해 둔다)
+// ═══════════════════════════════════════════════════════════════
+const VITALS = {
+  ageStart: 15,               // 시작 나이
+  heightMin: 150,             // 시작 키 (cm)
+  heightMax: 170,             // 성장 한계 (cm)
+  heightPerDay: 0.25,         // 하루에 자라는 키 (cm) → 80일이면 최대치
+  bmiFat: 26.5, bmiSlim: 19.0,          // 체형에 따른 BMI
+  fatPctFat: 34.0, fatPctSlim: 19.0,    // 체형에 따른 체지방률(%)
+  musclePctFat: 27.0, musclePctSlim: 35.0,  // 체중 대비 근육량(%)
+  gritMuscleBonus: 3.0,       // 근성 1000일 때 근육량 +3%p
+};
+
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// 첫 플레이 이후 지난 날 수 (실수)
+function daysPlayed() {
+  const ms = Date.now() - (S.firstTs || Date.now());
+  return Math.max(0, ms / 86400000);
+}
+// 나이 — 화면에는 안 보이지만 회춘 시스템을 위해 유지
+function ageYears() {
+  return VITALS.ageStart + daysPlayed() / 365;
+}
+function heightCm() {
+  return Math.min(VITALS.heightMax, VITALS.heightMin + daysPlayed() * VITALS.heightPerDay);
+}
+// 체중 = BMI × 키(m)^2. 통통할수록 BMI 가 높다.
+function weightKg() {
+  const w = bodyLevel();                        // 1 = 통통, 0 = 날씬
+  const bmi = lerp(VITALS.bmiSlim, VITALS.bmiFat, w);
+  const m = heightCm() / 100;
+  return bmi * m * m;
+}
+function bodyFatPct() {
+  const w = bodyLevel();
+  return lerp(VITALS.fatPctSlim, VITALS.fatPctFat, w);
+}
+function bodyFatKg() { return weightKg() * bodyFatPct() / 100; }
+// 근육량 = 체중 × 근육 비율. 날씬할수록, 근성이 높을수록 비율이 오른다.
+function muscleKg() {
+  const w = bodyLevel();
+  const pct = lerp(VITALS.musclePctSlim, VITALS.musclePctFat, w)
+    + VITALS.gritMuscleBonus * (auraVal('grit') / 1000);
+  return weightKg() * pct / 100;
+}
+
+// ─── 아우라 세부 수치 (각 0~1000) ───
+const AURA_MAX = 1000;
+const AURA_KEYS = ['happy', 'grace', 'unique', 'grit'];
+function auraVal(k) { return Math.max(0, Math.min(AURA_MAX, (S.aura && S.aura[k]) || 0)); }
+function addAura(k, n) {
+  if (!S.aura) S.aura = {};
+  S.aura[k] = Math.max(0, Math.min(AURA_MAX, (S.aura[k] || 0) + n));
+}
+
+// ─── 표시용 반올림 (요청한 자릿수 규칙) ───
+const fix2 = v => v.toFixed(2);   // 소수 셋째 자리 반올림 → 둘째 자리까지
+const fix1 = v => v.toFixed(1);   // 소수 둘째 자리 반올림 → 첫째 자리까지
 
 function totalCharm() {
   const creatureBonus = S.creatures.reduce((sum, cid) => {
@@ -327,6 +396,12 @@ function drinkPotion(potionId) {
   const beforeBody = bodyLevel();
   S.stats.beauty += r.result.beauty || 0;
   S.stats.charm  += r.result.charm  || 0;
+  // 물약마다 아우라 세부 수치가 다르게 오른다 (아우라 획득량 × 5)
+  const gain = (r.result.charm || 0) * 5;
+  if (gain > 0) {
+    const kinds = AURA_BY_POTION[r.result.id] || AURA_KEYS;
+    kinds.forEach(k => addAura(k, Math.round(gain / kinds.length)));
+  }
   save();
   toast(T('drank', { emoji: r.result.emoji, name: N(r.result.id, r.result.name), b: r.result.beauty, c: r.result.charm }));
   render();
@@ -514,6 +589,13 @@ function renderShowcase() {
 
   // 하위 탭(옷/물약/크리처) 표시 상태 반영
   updateRoomTabs();
+
+  // 제목 — "'이름'의 룸" (이름이 아직 없으면 기본 문구)
+  const titleEl = document.getElementById('roomTitle');
+  if (titleEl) titleEl.textContent = S.name ? T('screen_room_named', { name: S.name }) : T('screen_room');
+
+  // 신체 · 아우라 상세 수치
+  renderVitals();
 
   // 스탯
   document.getElementById('statBeauty').textContent = S.stats.beauty;
@@ -749,6 +831,35 @@ function playSlimFx(level) {
   setTimeout(() => { if (box) box.innerHTML = ''; }, 2400);
 
   if (window.Sfx) Sfx.play(level === 'sip' ? 'sparkle' : 'success');
+}
+
+// 물약 → 아우라 세부 수치 매핑 (레시피를 추가하면 여기도 한 줄 추가)
+const AURA_BY_POTION = {
+  blush:     ['happy'],            // 홍조 물약 → 행복
+  fragrance: ['grace'],            // 향기 물약 → 우아함
+  mystic:    ['unique'],           // 신비 물약 → 개성
+  vitality:  ['grit'],             // 생기 물약 → 근성
+  rainbow:   AURA_KEYS,            // 무지개 엘릭서 → 전부
+};
+
+// ─── 신체 · 아우라 상세 수치 표시 ───
+function renderVitals() {
+  const bodyEl = document.getElementById('vitalsBody');
+  const auraEl = document.getElementById('vitalsAura');
+  if (!bodyEl || !auraEl) return;
+
+  const row = (label, value) =>
+    `<div class="vitals-row"><dt>${label}</dt><dd>${value}</dd></div>`;
+
+  bodyEl.innerHTML =
+    row(T('v_weight'), `${fix2(weightKg())} kg`) +
+    row(T('v_height'), `${fix1(heightCm())} cm`) +
+    row(T('v_fat_pct'), `${fix2(bodyFatPct())} %`) +
+    row(T('v_fat_kg'), `${fix2(bodyFatKg())} kg`) +
+    row(T('v_muscle'), `${fix2(muscleKg())} kg`);
+
+  auraEl.innerHTML = AURA_KEYS.map(k =>
+    row(T('a_' + k), `${auraVal(k)} / ${AURA_MAX}`)).join('');
 }
 
 // ─── 과시(공유) ───

@@ -18,7 +18,11 @@
       tab_showcase: '마이 룸', tab_atelier: '공방', tab_gather: '채집',
       screen_gather: '🌿 채집', screen_gather_sub: '장소를 눌러 연금술 재료를 모으세요.',
       screen_atelier: '⚗️ 공방', screen_atelier_sub: '재료를 가마솥에 넣고 조합해 새 레시피를 발견하세요.',
-      screen_room: '✨ 마이 룸',
+      screen_room: '✨ 마이 룸', screen_room_named: "✨ '{name}'의 룸",
+      // 신체 수치
+      v_weight: '체중', v_height: '키', v_fat_pct: '체지방률', v_fat_kg: '체지방량', v_muscle: '근육량',
+      // 아우라 세부
+      a_happy: '행복', a_grace: '우아함', a_unique: '개성', a_grit: '근성',
       // 스탯
       stat_visual: '✨ 비주얼', stat_aura: '💖 아우라', stat_total: '매력 총합',
       flex_btn: '📢 매력 과시',
@@ -104,7 +108,9 @@
       tab_showcase: 'My Room', tab_atelier: 'Atelier', tab_gather: 'Gather',
       screen_gather: '🌿 Gather', screen_gather_sub: 'Tap a place to collect alchemy ingredients.',
       screen_atelier: '⚗️ Atelier', screen_atelier_sub: 'Put ingredients in the cauldron and brew to discover recipes.',
-      screen_room: '✨ My Room',
+      screen_room: '✨ My Room', screen_room_named: "✨ {name}'s Room",
+      v_weight: 'Weight', v_height: 'Height', v_fat_pct: 'Body Fat', v_fat_kg: 'Fat Mass', v_muscle: 'Muscle',
+      a_happy: 'Happiness', a_grace: 'Grace', a_unique: 'Individuality', a_grit: 'Grit',
       stat_visual: '✨ Visual', stat_aura: '💖 Aura', stat_total: 'Total Charm',
       flex_btn: '📢 Show Off',
       bag_title: '🎒 Gathering Bag', bag_empty: 'Empty', bag_kinds: '{n} kinds',
