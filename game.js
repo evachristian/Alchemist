@@ -149,6 +149,22 @@ function addAura(k, n) {
 const fix2 = v => v.toFixed(2);   // 소수 셋째 자리 반올림 → 둘째 자리까지
 const fix1 = v => v.toFixed(1);   // 소수 둘째 자리 반올림 → 첫째 자리까지
 
+// 매력 총합이 올라 새 채집지가 열리면 알려 준다
+let lastCharmSeen = null;
+function checkUnlocks() {
+  const now = totalCharm();
+  if (lastCharmSeen === null) { lastCharmSeen = now; return; }
+  if (now <= lastCharmSeen) { lastCharmSeen = now; return; }
+  const opened = D.MAPS.filter(m => m.unlock > lastCharmSeen && m.unlock <= now);
+  lastCharmSeen = now;
+  if (!opened.length) return;
+  const names = opened.map(m => N(m.id, m.name)).join(', ');
+  setTimeout(() => {
+    toast(T('map_unlocked', { name: names }), null, 3200);
+    if (window.Sfx) Sfx.play('success');
+  }, 2200);
+}
+
 function totalCharm() {
   const creatureBonus = S.creatures.reduce((sum, cid) => {
     const r = D.RECIPES.find(x => x.result.id === cid);
@@ -302,6 +318,7 @@ function switchTab(tab) {
 function gather(mapId) {
   const map = D.MAPS.find(m => m.id === mapId);
   if (!map) return;
+  if (!isMapOpen(map)) { toast(unlockText(map.unlock)); return; }
   if (!spendEnergy(D.ENERGY.cost.gather)) {
     toast(T('no_energy'));
     return;
@@ -387,6 +404,7 @@ function brew() {
     addAura('luck', (result.charmBonus || 0) * 8);
   }
   save(); render();
+  checkUnlocks();
   showBrewResult(result, isNew);
   // ??? 였던 레시피가 열리면 알림 (조합 결과 모달 위에 표시)
   if (isNew) {
@@ -415,6 +433,7 @@ function drinkPotion(potionId) {
   save();
   toast(T('drank', { emoji: r.result.emoji, name: N(r.result.id, r.result.name), b: r.result.beauty, c: r.result.charm }));
   render();
+  checkUnlocks();
   // 살 빠지는 연출 — 단계가 내려가면 크게, 아니면 반짝임만
   const afterBody = bodyLevel();
   playSlimFx(afterBody < beforeBody ? (afterBody === 0 ? 'done' : 'step') : 'sip');
@@ -477,16 +496,30 @@ function renderGather() {
   const cost = D.ENERGY.cost.gather;
   const canGather = (S.energy || 0) >= cost;
 
-  // 지대 탭
+  // 지대 탭 — 잠긴 지대는 자물쇠로 표시하고 조건을 안내
   const zoneEl = document.getElementById('zoneTabs');
   if (zoneEl) {
-    zoneEl.innerHTML = D.ZONES.map(z =>
-      `<button class="cat-tab ${gatherZone === z.id ? 'active' : ''}" onclick="setGatherZone('${z.id}')">${z.emoji} ${N(z.id, z.name)}</button>`
-    ).join('');
+    zoneEl.innerHTML = D.ZONES.map(z => {
+      const open = isZoneOpen(z);
+      return `<button class="cat-tab ${gatherZone === z.id ? 'active' : ''} ${open ? '' : 'locked'}"
+        onclick="setGatherZone('${z.id}', this)">${open ? z.emoji : '🔒'} ${N(z.id, z.name)}</button>`;
+    }).join('');
   }
 
   const el = document.getElementById('spotList');
   el.innerHTML = D.MAPS.filter(m => m.zone === gatherZone).map(spot => {
+    // 잠긴 맵: 이름만 남기고 해금 조건을 보여 준다
+    if (!isMapOpen(spot)) {
+      return `
+        <div class="spot-card locked" data-spot="${spot.id}" onclick="lockedMapInfo('${spot.id}', this)">
+          <div class="spot-emoji">🔒</div>
+          <div class="spot-info">
+            <div class="spot-name">${N(spot.id, spot.name)}</div>
+            <div class="spot-desc">${unlockText(spot.unlock)}</div>
+          </div>
+          <div class="spot-go">${T('locked_go')}</div>
+        </div>`;
+    }
     const chips = spot.pool.map(id => D.INGREDIENTS[id].emoji).join(' ');
     const sp = D.INGREDIENTS[spot.special];
     // 특별한 재료는 한 번이라도 얻었을 때만 정체를 보여 준다
@@ -684,9 +717,31 @@ function updateRoomTabs() {
 // ═══════════════════════════════════════════════════════════════
 let wardrobeTab = 'hair';
 
+// ═══════════════════════════════════════════════════════════════
+//  콘텐츠 해금 — 매력 총합이 기준 점수에 닿으면 열린다
+//  안내 문구: "○○ 단계 N점 달성 시 오픈" (단계 이름은 N 에서 자동 계산)
+// ═══════════════════════════════════════════════════════════════
+function isMapOpen(m)  { return totalCharm() >= m.unlock; }
+function isZoneOpen(z) { return totalCharm() >= D.zoneUnlock(z.id); }
+// 해금 조건 문구 — 점수에 해당하는 단계 이름을 붙여 준다
+function unlockText(score) {
+  const tier = D.getTier(score);
+  return T('unlock_at', { tier: TN(tier.title), score: score });
+}
+
 // 채집 지대 (채집 화면의 카테고리 탭)
-let gatherZone = 'mountain';
-function setGatherZone(id) { gatherZone = id; render(); }
+let gatherZone = 'plain';
+function setGatherZone(id, el) {
+  const z = D.ZONES.find(x => x.id === id);
+  if (z && !isZoneOpen(z)) { toast(unlockText(D.zoneUnlock(id)), el); return; }
+  gatherZone = id;
+  render();
+}
+// 잠긴 맵을 눌렀을 때 조건 안내
+function lockedMapInfo(mapId, el) {
+  const m = D.MAPS.find(x => x.id === mapId);
+  if (m) toast(unlockText(m.unlock), el);
+}
 
 // 레시피 북 카테고리 (하급/중급/상급 물약 · 크리처)
 let recipeTab = 'low';

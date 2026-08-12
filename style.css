@@ -186,6 +186,14 @@ body {
   border-radius: 999px; background: var(--lav); font-size: 0.9rem;
 }
 .spot-special.found { background: #fff0b8; }
+/* 아직 열리지 않은 채집지 — 정책상 '비활성' 이라 대비 검사 예외 */
+.spot-card.locked { background: var(--cream); box-shadow: none; cursor: default; }
+.spot-card.locked .spot-name { color: var(--ink-soft); }
+.spot-card.locked .spot-desc { color: var(--text-warn); font-weight: 800; }
+/* 잠금은 🔒 아이콘으로 알리고, 글자는 읽을 수 있게 유지한다 (TEXT_POLICY 규칙) */
+.spot-card.locked .spot-go { color: var(--ink-soft); }
+.spot-card.locked:active { transform: none; }
+.cat-tab.locked { color: var(--ink-soft); background: var(--cream); }
 .zn-tabs { margin: 0 0 12px; }
 /* '채집' 라벨 + 비용 — 언어에 따라 길어져도 카드를 밀어내지 않게 (UI_POLICY.md '가변 폭') */
 .spot-go {
