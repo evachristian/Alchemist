@@ -27,7 +27,7 @@ const defaultState = () => ({
   energyDay: dayKey(),      // 마지막 충전 기준 로컬 날짜 키 (YYYYMMDD)
   name:      '',            // 연금술사 이름 (튜토리얼 종료 후 입력)
   // 아우라 세부 수치 (각 0~1000)
-  aura:      { happy: 100, grace: 100, unique: 100, grit: 100 },
+  aura:      { happy: 100, grace: 100, unique: 100, grit: 100, luck: 100 },
   firstTs:   Date.now(),    // 첫 플레이 시각 — 키 성장의 기준
   ver:       SAVE_VER,      // 세이브 버전 (마이그레이션용)
 });
@@ -41,7 +41,7 @@ function load() {
       const parsed = JSON.parse(raw);
       const st = Object.assign(defaultState(), parsed);
       st.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, st.outfit || {});
-      st.aura = Object.assign({ happy: 100, grace: 100, unique: 100, grit: 100 }, st.aura || {});
+      st.aura = Object.assign({ happy: 100, grace: 100, unique: 100, grit: 100, luck: 100 }, st.aura || {});
       if (!st.firstTs) st.firstTs = Date.now();
       if (!Array.isArray(st.unlocked)) st.unlocked = [];
       // 버전은 '저장된 값' 에서 읽어야 한다.
@@ -138,7 +138,7 @@ function muscleKg() {
 
 // ─── 아우라 세부 수치 (각 0~1000) ───
 const AURA_MAX = 1000;
-const AURA_KEYS = ['happy', 'grace', 'unique', 'grit'];
+const AURA_KEYS = ['happy', 'grace', 'unique', 'grit', 'luck'];
 function auraVal(k) { return Math.max(0, Math.min(AURA_MAX, (S.aura && S.aura[k]) || 0)); }
 function addAura(k, n) {
   if (!S.aura) S.aura = {};
@@ -158,8 +158,7 @@ function totalCharm() {
 }
 
 // 가중 랜덤 추첨
-function weightedPick(spot) {
-  const pool = D.SPOTS[spot].pool;
+function weightedPick(pool) {
   const total = pool.reduce((s, id) => s + D.INGREDIENTS[id].weight, 0);
   let r = Math.random() * total;
   for (const id of pool) {
@@ -300,19 +299,28 @@ function switchTab(tab) {
 // ═══════════════════════════════════════════════════════════════
 //  채집 (Gather)
 // ═══════════════════════════════════════════════════════════════
-function gather(spotId) {
+function gather(mapId) {
+  const map = D.MAPS.find(m => m.id === mapId);
+  if (!map) return;
   if (!spendEnergy(D.ENERGY.cost.gather)) {
     toast(T('no_energy'));
     return;
   }
-  const id = weightedPick(spotId);
+  // 0.1% 확률로 그 맵에서만 나오는 '특별한 재료'
+  const isSpecial = Math.random() < D.SPECIAL_RATE;
+  const id = isSpecial ? map.special : weightedPick(map.pool);
   addInv(id, 1);
   S.gathered++;
   save();
   const ing = D.INGREDIENTS[id];
-  toast(T('got_item', { emoji: ing.emoji, name: N(ing.id, ing.name) }));
+  if (isSpecial) {
+    toast(T('got_special', { emoji: ing.emoji, name: N(ing.id, ing.name) }), null, 3200);
+    if (window.Sfx) Sfx.play('success');
+  } else {
+    toast(T('got_item', { emoji: ing.emoji, name: N(ing.id, ing.name) }));
+  }
   // 채집 애니메이션
-  const card = document.querySelector(`.spot-card[data-spot="${spotId}"]`);
+  const card = document.querySelector(`.spot-card[data-spot="${mapId}"]`);
   if (card) { card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop'); }
   render();
 }
@@ -375,6 +383,8 @@ function brew() {
     S.potions[result.id] = (S.potions[result.id] || 0) + 1;
   } else if (result.kind === 'creature') {
     S.creatures.push(result.id);
+    // 크리처는 행운을 부른다 — 전시 매력 보너스 × 8 만큼 행운 상승
+    addAura('luck', (result.charmBonus || 0) * 8);
   }
   save(); render();
   showBrewResult(result, isNew);
@@ -466,16 +476,29 @@ function renderHeader() {
 function renderGather() {
   const cost = D.ENERGY.cost.gather;
   const canGather = (S.energy || 0) >= cost;
+
+  // 지대 탭
+  const zoneEl = document.getElementById('zoneTabs');
+  if (zoneEl) {
+    zoneEl.innerHTML = D.ZONES.map(z =>
+      `<button class="cat-tab ${gatherZone === z.id ? 'active' : ''}" onclick="setGatherZone('${z.id}')">${z.emoji} ${N(z.id, z.name)}</button>`
+    ).join('');
+  }
+
   const el = document.getElementById('spotList');
-  el.innerHTML = Object.values(D.SPOTS).map(spot => {
+  el.innerHTML = D.MAPS.filter(m => m.zone === gatherZone).map(spot => {
     const chips = spot.pool.map(id => D.INGREDIENTS[id].emoji).join(' ');
+    const sp = D.INGREDIENTS[spot.special];
+    // 특별한 재료는 한 번이라도 얻었을 때만 정체를 보여 준다
+    const found = invCount(spot.special) > 0;
+    const spChip = `<span class="spot-special ${found ? 'found' : ''}" title="${T('special_hint')}">${found ? sp.emoji : '❔'}</span>`;
     return `
       <div class="spot-card ${canGather ? '' : 'low-energy'}" data-spot="${spot.id}" onclick="gather('${spot.id}')">
         <div class="spot-emoji">${spot.emoji}</div>
         <div class="spot-info">
           <div class="spot-name">${N(spot.id, spot.name)}</div>
           <div class="spot-desc">${N(spot.id + '_desc', spot.desc)}</div>
-          <div class="spot-pool">${chips}</div>
+          <div class="spot-pool">${chips} ${spChip}</div>
         </div>
         <div class="spot-go">${T('gather_go')} <span class="cost-tag">⚡${cost}</span></div>
       </div>`;
@@ -660,6 +683,10 @@ function updateRoomTabs() {
 //  옷장 (Wardrobe) — 아바타 착장 + 커스터마이징 잠금/해금
 // ═══════════════════════════════════════════════════════════════
 let wardrobeTab = 'hair';
+
+// 채집 지대 (채집 화면의 카테고리 탭)
+let gatherZone = 'mountain';
+function setGatherZone(id) { gatherZone = id; render(); }
 
 // 레시피 북 카테고리 (하급/중급/상급 물약 · 크리처)
 let recipeTab = 'low';

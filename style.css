@@ -180,6 +180,13 @@ body {
 .spot-name { font-weight: 800; font-size: 1.05rem; }
 .spot-desc { font-size: 0.76rem; color: var(--ink-soft); margin: 2px 0 6px; }
 .spot-pool { font-size: 1rem; letter-spacing: 2px; }
+/* 맵마다 하나씩 있는 특별한 재료 — 찾기 전에는 ❔ 로 가려 둔다 */
+.spot-special {
+  display: inline-block; margin-left: 4px; padding: 0 5px;
+  border-radius: 999px; background: var(--lav); font-size: 0.9rem;
+}
+.spot-special.found { background: #fff0b8; }
+.zn-tabs { margin: 0 0 12px; }
 /* '채집' 라벨 + 비용 — 언어에 따라 길어져도 카드를 밀어내지 않게 (UI_POLICY.md '가변 폭') */
 .spot-go {
   font-size: 0.78rem; font-weight: 800; color: var(--text-pink);
