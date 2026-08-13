@@ -6,7 +6,8 @@ const SAVE_KEY = 'dieter_alchemist_save_v1';
 // 세이브 버전 — 기본값을 바꿨을 때 예전 세이브에도 한 번 반영하기 위해 사용
 //  1: 최초  /  2: 시작 외형을 튜토리얼 인트로의 공주(갈색 긴 머리 + 연두 드레스)로 통일
 //  3: 시작부터 알고 있는 하급 물약 2종
-const SAVE_VER = 3;
+//  4: 플레이 기록(record) 추가
+const SAVE_VER = 4;
 
 // 처음부터 알고 있는 레시피. defaultState 와 migrate 가 같이 쓰므로 값이 어긋나지 않는다.
 const STARTER_RECIPES = ['vitality', 'blush'];
@@ -34,8 +35,53 @@ const defaultState = () => ({
   aura:      { happy: 100, grace: 100, unique: 100, grit: 100, luck: 100 },
   cauldronId: 'cd_iron',    // 사용 중인 마법 솥
   firstTs:   Date.now(),    // 첫 플레이 시각 — 키 성장의 기준
+  record:    newRecord(),   // 플레이 기록 (누적 통계)
+  rev:       0,             // 저장 횟수 — 서버 동기화에서 어느 쪽이 최신인지 판단
   ver:       SAVE_VER,      // 세이브 버전 (마이그레이션용)
 });
+
+// ─── 플레이 기록 ───
+// 게임을 초기화하기 전까지 계속 쌓인다. 되돌아가서 셀 수 없는 값들이라
+// (실패한 조합, 접속한 날 수 등) 그때그때 세어 둔다.
+function newRecord() {
+  return {
+    gathered:    0,   // 채집 횟수
+    specials:    0,   // 특별한 재료를 뽑은 횟수 (0.1%)
+    itemsGot:    0,   // 얻은 재료 개수 (누적)
+    brews:       0,   // 조합 시도
+    brewOk:      0,   // 성공
+    brewFail:    0,   // 실패 (찌꺼기)
+    discoveries: 0,   // 새로 알아낸 레시피
+    drinks:      0,   // 마신 물약
+    creatures:   0,   // 만든 크리처 (누적 — 전시 목록과 달리 줄지 않는다)
+    pots:        ['cd_iron'],   // 써 본 마법 솥 (중복 없이)
+    playSec:     0,   // 실제로 화면을 보고 있던 시간 (초)
+    days:        1,   // 접속한 날 수
+    lastDay:     dayKey(),
+    firstTs:     Date.now(),
+    lastTs:      Date.now(),
+  };
+}
+// 기록 갱신 — 필드가 없던 예전 세이브도 안전하게 다룬다
+function rec(key, n) {
+  if (!S.record) S.record = newRecord();
+  S.record[key] = (S.record[key] || 0) + (n === undefined ? 1 : n);
+}
+
+// 플레이 시간 — 화면을 실제로 보고 있는 동안만 센다.
+// 매초 저장하면 낭비라 30초에 한 번만 기록에 반영한다.
+let _playTick = 0;
+function tickPlayTime() {
+  if (document.hidden || !S.record) return;
+  S.record.playSec = (S.record.playSec || 0) + 1;
+  // 날짜가 바뀌었으면 접속한 날 수를 올린다
+  const today = dayKey();
+  if (S.record.lastDay !== today) {
+    S.record.lastDay = today;
+    S.record.days = (S.record.days || 0) + 1;
+  }
+  if (++_playTick >= 30) { _playTick = 0; save(); }
+}
 
 let S = load();
 
@@ -50,6 +96,8 @@ function load() {
       if (!st.firstTs) st.firstTs = Date.now();
       if (!st.cauldronId) st.cauldronId = 'cd_iron';
       if (!Array.isArray(st.unlocked)) st.unlocked = [];
+      st.record = Object.assign(newRecord(), st.record || {});
+      if (typeof st.rev !== 'number') st.rev = 0;
       // 버전은 '저장된 값' 에서 읽어야 한다.
       // (defaultState 가 최신 버전을 채워 넣으므로 병합 후의 st.ver 로는 판별할 수 없음)
       migrate(st, parsed.ver || 1);
@@ -58,7 +106,22 @@ function load() {
   } catch (e) { console.warn('load failed', e); }
   return defaultState();
 }
-function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }
+// 저장 — 로컬에 쓰고, 서버 동기화가 붙어 있으면 올려 보낸다.
+// rev 는 저장할 때마다 1씩 오르는 번호로, 어느 쪽 세이브가 최신인지 판단하는 기준이다.
+function save() {
+  S.rev = (S.rev || 0) + 1;
+  if (S.record) S.record.lastTs = Date.now();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+  if (window.Sync) Sync.push(S);
+}
+// 서버에서 더 최신 세이브를 받아 왔을 때 (sync.js 가 호출)
+function adoptState(state) {
+  S = Object.assign(defaultState(), state);
+  S.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, S.outfit || {});
+  S.record = Object.assign(newRecord(), S.record || {});
+  localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+  if (typeof render === 'function') render();
+}
 
 // 예전 세이브에 새 기본값을 한 번만 적용한다.
 // (저장된 값이 항상 기본값을 덮어쓰기 때문에, 기본값만 바꾸면 기존 플레이어에게는 반영되지 않는다)
@@ -306,6 +369,7 @@ function renderClock() {
 // 1초 틱: 카운트다운 갱신 + 자정 롤오버 자동 충전
 function energyTick() {
   renderClock();
+  tickPlayTime();
   if (refreshEnergy()) render();   // 충전되면 화면 전체 갱신(비활성 상태 등)
   else renderEnergy();
 }
@@ -340,6 +404,8 @@ function gather(mapId) {
   const id = isSpecial ? map.special : weightedPick(map.pool);
   addInv(id, 1);
   S.gathered++;
+  rec('gathered'); rec('itemsGot');
+  if (isSpecial) rec('specials');
   save();
   const ing = D.INGREDIENTS[id];
   if (isSpecial) {
@@ -393,14 +459,18 @@ function brew() {
   const result = D.RECIPE_MAP[key];
   S.cauldron = [];
 
+  rec('brews');
   if (!result) {
+    rec('brewFail');
     save(); render();
     showBrewResult(D.SLUDGE, false);
     return;
   }
 
+  rec('brewOk');
   const isNew = !S.discovered.includes(result.id);
   if (isNew) {
+    rec('discoveries');
     S.discovered.push(result.id);
     lastFound = result.id;              // 레시피 북에서 맨 위로 올려 강조
     // 발견한 카테고리로 레시피 북을 자동 전환
@@ -411,6 +481,7 @@ function brew() {
   if (result.kind === 'potion') {
     S.potions[result.id] = (S.potions[result.id] || 0) + 1;
   } else if (result.kind === 'creature') {
+    rec('creatures');
     S.creatures.push(result.id);
     // 크리처는 행운을 부른다 — 전시 매력 보너스 × 8 만큼 행운 상승
     addAura('luck', (result.charmBonus || 0) * 8);
@@ -433,6 +504,7 @@ function drinkPotion(potionId) {
   if (!r) return;
   S.potions[potionId]--;
   if (S.potions[potionId] === 0) delete S.potions[potionId];
+  rec('drinks');
   const beforeBody = bodyLevel();
   S.stats.beauty += r.result.beauty || 0;
   S.stats.charm  += r.result.charm  || 0;
@@ -776,6 +848,7 @@ function chooseCauldron(id, el) {
   if (!c) return;
   if (!isCauldronOpen(c)) { toast(unlockText(c.unlock), el); return; }
   S.cauldronId = id;
+  if (S.record && !S.record.pots.includes(id)) S.record.pots.push(id);
   // 구멍이 줄어들면 넘치는 재료는 가방으로 되돌린다
   while (S.cauldron.length > c.slots) S.cauldron.pop();
   save(); render();
@@ -1017,6 +1090,45 @@ function renderVitals() {
 
   auraEl.innerHTML = AURA_KEYS.map(k =>
     row(T('a_' + k), `${auraVal(k)} / ${AURA_MAX}`)).join('');
+
+  renderRecord(row);
+}
+
+// ─── 플레이 기록 ───
+// 세어 둔 값(record)과 지금 상태에서 바로 알 수 있는 값(열린 채집지 수 등)을 함께 보여 준다.
+function renderRecord(row) {
+  const listEl = document.getElementById('recordList');
+  const briefEl = document.getElementById('recordBrief');
+  if (!listEl) return;
+  const r = S.record || newRecord();
+
+  const openMaps = D.MAPS.filter(isMapOpen).length;
+  const succRate = r.brews ? Math.round(r.brewOk / r.brews * 100) : 0;
+
+  listEl.innerHTML =
+    row(T('rec_days'), T('rec_days_v', { n: r.days || 1 })) +
+    row(T('rec_playtime'), playTimeText(r.playSec || 0)) +
+    row(T('rec_gathered'), `${r.gathered || 0}`) +
+    row(T('rec_specials'), `${r.specials || 0}`) +
+    row(T('rec_brews'), `${r.brews || 0} (${T('rec_succ', { n: succRate })})`) +
+    row(T('rec_discoveries'), `${S.discovered.length} / ${D.RECIPES.length}`) +
+    row(T('rec_drinks'), `${r.drinks || 0}`) +
+    row(T('rec_creatures'), `${r.creatures || 0}`) +
+    row(T('rec_maps'), `${openMaps} / ${D.MAPS.length}`) +
+    row(T('rec_pots'), `${(r.pots || []).length} / ${D.CAULDRONS.length}`) +
+    row(T('rec_cosmetics'), `${S.unlocked.length}`) +
+    row(T('rec_started'), dateText(r.firstTs || S.firstTs));
+
+  if (briefEl) briefEl.textContent = T('rec_brief', { d: r.days || 1, g: r.gathered || 0 });
+}
+
+function playTimeText(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60);
+  return h ? T('rec_hm', { h, m }) : T('rec_m', { m });
+}
+function dateText(ts) {
+  const d = new Date(ts || Date.now());
+  return `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
 }
 
 // ─── 과시(공유) ───
@@ -1038,6 +1150,7 @@ function flexCharm() {
 // ═══════════════════════════════════════════════════════════════
 function openSettings() {
   renderSettings();
+  renderSyncSettings();
   document.getElementById('settingsModal').classList.add('show');
 }
 function closeSettings() {
@@ -1207,11 +1320,64 @@ function fillEnergy() {
 // 세이브와 '튜토리얼 봤음' 표시를 지우고 새로고침 → 로고 → 튜토리얼 → 이름 입력까지 처음부터.
 // 언어·사운드 설정은 게임 진행이 아니라 앱 환경설정이라 남겨 둔다.
 function askResetGame() {
-  showConfirm(T('confirm_reset_game'), () => {
+  showConfirm(T('confirm_reset_game'), async () => {
+    // 서버 사본을 먼저 지운다. 로컬만 지우면 다음 접속 때 서버에서 되살아난다.
+    // (서버가 죽어 있어도 초기화 자체는 진행한다 — 로컬이 진짜이므로)
+    if (window.Sync) { try { await Sync.wipe(); } catch (e) {} }
     try {
       localStorage.removeItem(SAVE_KEY);
       localStorage.removeItem(window.Intro ? Intro.SEEN_KEY : 'dieter_alchemist_intro_seen_v1');
     } catch (e) {}
+    location.reload();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  서버 저장 (sync.js) 연결
+// ═══════════════════════════════════════════════════════════════
+const SYNC_ICON = { idle: '☁️', pending: '☁️', saving: '🔄', saved: '☁️', offline: '⚠️', off: '📴' };
+
+function renderSyncChip(st) {
+  const el = document.getElementById('syncChip');
+  if (!el) return;
+  el.textContent = `${SYNC_ICON[st] || '☁️'} ${T('sync_' + st)}`;
+  el.dataset.state = st;
+}
+
+// 상단 표시를 눌렀을 때 안내
+function syncHelp(el) {
+  const st = window.Sync ? Sync.status : 'off';
+  toast(T('sync_help_' + st), el, 3000);
+}
+
+// 설정 창의 세이브 항목 채우기
+function renderSyncSettings() {
+  const codeEl = document.getElementById('syncCode');
+  const stateEl = document.getElementById('setSyncState');
+  if (codeEl && window.Sync) codeEl.value = Sync.code();
+  if (stateEl && window.Sync) {
+    const st = Sync.status;
+    stateEl.textContent = `${SYNC_ICON[st] || '☁️'} ${T('sync_' + st)}`;
+  }
+}
+
+function copyRecoveryCode(el) {
+  const code = window.Sync ? Sync.code() : '';
+  if (!code) return;
+  const done = () => toast(T('sync_copied'), el, 2400);
+  if (navigator.clipboard) navigator.clipboard.writeText(code).then(done, () => {
+    const i = document.getElementById('syncCode'); if (i) { i.select(); done(); }
+  });
+  else { const i = document.getElementById('syncCode'); if (i) { i.select(); document.execCommand('copy'); done(); } }
+}
+
+// 다른 기기의 복구 코드로 갈아타기 — 지금 기기의 진행은 사라지므로 한 번 묻는다
+function askUseRecoveryCode() {
+  const code = prompt(T('sync_restore_ask'));
+  if (code === null) return;
+  if (!window.Sync || !Sync.useCode(code)) { toast(T('sync_bad_code')); return; }
+  showConfirm(T('sync_restore_confirm'), async () => {
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     location.reload();
   });
 }
@@ -1230,6 +1396,15 @@ document.addEventListener('DOMContentLoaded', () => {
     b.addEventListener('click', () => switchTab(b.dataset.tab)));
   refreshEnergy();          // 접속 시 자정 롤오버 반영
   switchTab('showcase');
+  // 서버에 더 최신 세이브가 있으면 그걸로 이어서 한다 (없으면 지금 것을 올린다)
+  if (window.Sync) {
+    Sync.onStatus(renderSyncChip);
+    Sync.pull(S).then(r => {
+      if (r && r.action === 'adopt') toast(T('sync_pulled'), null, 2800);
+    });
+  } else {
+    renderSyncChip('off');
+  }
   setInterval(energyTick, 1000);  // 카운트다운 + 자정 자동 충전
   // 백그라운드 → 포그라운드 복귀 시 즉시 반영
   document.addEventListener('visibilitychange', () => { if (!document.hidden) energyTick(); });

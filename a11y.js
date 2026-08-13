@@ -22,10 +22,16 @@
     allowedFamily: 'Noto Sans KR',               // body 스택의 첫 폰트
     // 검사 제외
     //  · 장식용 그래픽/이모지 — 읽는 글자가 아님
-    //  · 비활성/잠금 상태 — WCAG 도 inactive 컴포넌트는 대비 요건에서 제외한다
-    //    (단 '잠김'이라는 사실 자체는 자물쇠 아이콘 등으로 따로 알려야 함)
+    //  · 완전 비활성 컴포넌트 — WCAG 도 inactive 요소는 대비 요건에서 제외한다
+    // 잠긴 요소(.locked)는 예외로 두지 않는다 — 흐리게 만든 뒤에도 읽혀야 하고,
+    // 특히 '언제 열리는지' 안내는 잠긴 카드에서 유일하게 읽어야 하는 정보다.
     skipSelector: '[data-a11y-skip], .i-dot, .avatar-svg, svg, .brew-emoji, .spot-emoji,'
-      + ' .wr-tab.dim, .wr-item.locked, [disabled], [aria-disabled="true"]',
+      + ' .wr-tab.dim, [disabled], [aria-disabled="true"]',
+    // 잠금 표현 (UI_POLICY 7장)
+    lockedSelector: '.spot-card.locked, .cat-tab.locked, .wr-item.locked',
+    lockMaxSaturate: 0.4,     // 이보다 채도가 높으면 '잠김'으로 안 보인다
+    lockMaxOpacity: 0.92,     // 살짝이라도 투명해야 뒤로 물러나 보인다
+    lockMinOpacity: 0.7,      // 그렇다고 글자를 못 읽을 만큼 흐리면 안 된다
   };
 
   // 이모지만으로 이루어진 글자는 대비 검사에서 제외한다.
@@ -295,25 +301,95 @@
       await frame();
       const text = checkTextStyle();
       const layout = checkLayout();
-      report.push({ 언어: code, 배율: '1x', 대비위반: text.count, 레이아웃위반: layout.count });
+      const locked = checkLocked();
+      report.push({ 언어: code, 배율: '1x', 대비위반: text.count,
+                    레이아웃위반: layout.count, 잠금표현위반: locked.count });
 
       const restore = stressLabels(stress);
       await frame();
       const stressed = checkLayout();
       restore();
       await frame();
-      report.push({ 언어: code, 배율: stress + 'x', 대비위반: '-', 레이아웃위반: stressed.count });
+      report.push({ 언어: code, 배율: stress + 'x', 대비위반: '-',
+                    레이아웃위반: stressed.count, 잠금표현위반: '-' });
       if (stressed.count) report.stressRows = (report.stressRows || []).concat(stressed.rows);
     }
     if (before && window.I18N) { I18N.setLang(before); await frame(); }
 
-    const total = report.reduce((n, r) => n + (Number(r.대비위반) || 0) + (Number(r.레이아웃위반) || 0), 0);
+    const total = report.reduce((n, r) => n + (Number(r.대비위반) || 0)
+      + (Number(r.레이아웃위반) || 0) + (Number(r.잠금표현위반) || 0), 0);
     console.table(report);
     console.log(total === 0 ? '[UI 정책] 전체 통과 ✅' : `[UI 정책] 총 ${total}건 확인 필요`);
     return { pass: total === 0, total, report };
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  잠금 표현 검증 — 잠긴 것이 열린 것과 눈에 띄게 달라 보이는가
+  //  (UI_POLICY.md 7장. 자물쇠 아이콘만으로는 훑어볼 때 구분이 안 된다)
+  // ═══════════════════════════════════════════════════════════════
+  function saturateOf(el) {
+    // filter 문자열에서 saturate()/grayscale() 을 읽어 실효 채도를 구한다
+    const f = getComputedStyle(el).filter;
+    if (!f || f === 'none') return 1;
+    let s = 1;
+    const sat = f.match(/saturate\(([\d.]+)(%?)\)/);
+    if (sat) s *= parseFloat(sat[1]) / (sat[2] ? 100 : 1);
+    const gray = f.match(/grayscale\(([\d.]+)(%?)\)/);
+    if (gray) s *= 1 - parseFloat(gray[1]) / (gray[2] ? 100 : 1);
+    return s;
+  }
+
+  function checkLocked(opts) {
+    opts = opts || {};
+    const found = [];
+    const els = [...document.querySelectorAll(POLICY.lockedSelector)]
+      .filter(el => opts.all || visible(el));
+
+    for (const el of els) {
+      const sat = saturateOf(el);
+      const op = effectiveOpacity(el);
+      const issues = [];
+      if (sat > POLICY.lockMaxSaturate && op > POLICY.lockMaxOpacity) {
+        issues.push(`채도 ${sat.toFixed(2)} / 불투명도 ${op.toFixed(2)} — 둘 다 그대로라 잠겨 보이지 않음`);
+      }
+      if (op < POLICY.lockMinOpacity) {
+        issues.push(`불투명도 ${op.toFixed(2)} — 너무 흐려 글자를 읽기 어려움 (최소 ${POLICY.lockMinOpacity})`);
+      }
+      // 자물쇠는 색에 의존하지 않는 신호라 반드시 있어야 한다
+      if (!/🔒|🔐|잠김|Locked/i.test(el.textContent || '')) {
+        issues.push('자물쇠 표시가 없음 — 색약 사용자에게 잠금이 전달되지 않음');
+      }
+      if (!issues.length) continue;
+      found.push({ 선택자: selectorOf(el), 텍스트: (el.textContent || '').trim().slice(0, 16),
+                   채도: sat.toFixed(2), 불투명도: op.toFixed(2), 위반: issues.join(', ') });
+    }
+
+    // 같은 종류의 '열린' 요소와 실제로 달라 보이는지도 확인
+    for (const sel of POLICY.lockedSelector.split(',').map(s => s.trim())) {
+      const base = sel.replace('.locked', '');
+      const open = [...document.querySelectorAll(base)]
+        .filter(e => !e.classList.contains('locked') && visible(e))[0];
+      const lock = [...document.querySelectorAll(sel)].filter(e => visible(e))[0];
+      if (!open || !lock) continue;
+      if (saturateOf(open).toFixed(2) === saturateOf(lock).toFixed(2)
+          && effectiveOpacity(open).toFixed(2) === effectiveOpacity(lock).toFixed(2)) {
+        found.push({ 선택자: sel, 텍스트: '', 채도: '-', 불투명도: '-',
+                     위반: `열린 ${base} 와 채도·불투명도가 똑같음` });
+      }
+    }
+
+    if (found.length && typeof console.table === 'function') {
+      console.groupCollapsed(`[잠금 표현] 위반 ${found.length}건`);
+      console.table(found);
+      console.groupEnd();
+    } else if (!found.length) {
+      console.log('[잠금 표현] 이상 없음 ✅ (검사 ' + els.length + '건)');
+    }
+    return { pass: found.length === 0, count: found.length, checked: els.length, rows: found };
+  }
+
   window.checkTextStyle = checkTextStyle;
+  window.checkLocked = checkLocked;
   window.checkLayout = checkLayout;
   window.__stress = stressLabels;   // 테스트용: 라벨 길이를 배로 늘림
   window.checkUI = checkUI;
