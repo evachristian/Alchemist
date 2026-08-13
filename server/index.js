@@ -165,7 +165,10 @@ if (require.main === module) {
     console.log(`  저장소: ${store.kind}`);
     if (store.kind.startsWith('memory')) {
       console.warn('  ⚠ 메모리 저장소입니다 — 서버를 다시 배포하면 세이브가 사라집니다.');
-      console.warn('    Railway 에서 Postgres 를 붙이거나(DATABASE_URL), Volume 을 붙이세요(DATA_DIR).');
+      console.warn('    Railway 에서 Postgres 를 추가하는 것만으로는 연결되지 않습니다.');
+      console.warn('    이 서비스의 Variables 에 참조 변수를 직접 만들어 주세요:');
+      console.warn('      DATABASE_URL = ${{Postgres.DATABASE_URL}}');
+      console.warn('    (Volume 을 쓴다면 DATA_DIR 을 지정하세요)');
     }
   });
 }

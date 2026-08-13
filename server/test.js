@@ -119,7 +119,36 @@ async function run(label, env) {
   delete process.env.DATA_DIR;
 }
 
+// 어떤 환경변수를 보고 저장소를 고르는가 (Postgres 는 실제로 붙이지 않고 선택 로직만 확인)
+function storeChoice() {
+  for (const k of Object.keys(require.cache)) delete require.cache[k];
+  const { createStore } = require('./store.js');
+  return createStore;
+}
+function pick(env) {
+  const createStore = storeChoice();
+  // pg 접속은 하지 않고 kind 만 본다 (Pool 생성은 즉시 접속하지 않는다)
+  try { return createStore(env).kind; } catch (e) { return 'error:' + e.message; }
+}
+
 (async () => {
+  const dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'alchpick-'));
+  ok(pick({}) === 'memory(휘발성)', '변수 없음 → ' + pick({}));
+  ok(pick({ DATA_DIR: dirTmp }).startsWith('file('), 'DATA_DIR → ' + pick({ DATA_DIR: dirTmp }));
+  for (const k of ['DATABASE_URL', 'DATABASE_PRIVATE_URL', 'POSTGRES_URL', 'PG_URL', 'POSTGRESQL_URL']) {
+    const kind = pick({ [k]: 'postgresql://u:p@postgres.railway.internal:5432/railway' });
+    ok(kind === 'postgres', `${k} → ${kind}`);
+  }
+  // 참조 문법을 잘못 적어 문자열이 그대로 들어온 경우 — postgres 로 오인하면 안 된다
+  const bad = pick({ DATABASE_URL: '${{Postgres.DATABASE_URL}}', DATA_DIR: dirTmp });
+  ok(bad.startsWith('file('), '잘못된 참조 변수는 무시하고 다음 저장소로 → ' + bad);
+  const bad2 = pick({ DATABASE_URL: '${{Postgres.DATABASE_URL}}' });
+  ok(bad2 === 'memory(휘발성)', '잘못된 참조 변수만 있으면 메모리 → ' + bad2);
+  // 우선순위: Postgres 가 파일보다 앞선다
+  const both = pick({ DATABASE_URL: 'postgres://u:p@h:5432/d', DATA_DIR: dirTmp });
+  ok(both === 'postgres', 'Postgres 가 파일보다 우선 → ' + both);
+  fs.rmSync(dirTmp, { recursive: true, force: true });
+
   // PORT 를 주지 않으면 8080 (Railway 가 도메인을 8080 으로 라우팅한다)
   {
     for (const k of Object.keys(require.cache)) delete require.cache[k];

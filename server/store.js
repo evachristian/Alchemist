@@ -22,21 +22,41 @@ function pgStore(url) {
     ssl: /localhost|127\.0\.0\.1|\.railway\.internal/.test(url)
       ? false
       : { rejectUnauthorized: false },
+    // DB 가 응답하지 않을 때 요청이 영원히 매달려 있지 않도록 한도를 둔다.
+    // (한도가 없으면 게임 쪽은 '저장 중' 에서 멈춘 것처럼 보인다 —
+    //  빨리 실패해야 sync.js 가 오프라인으로 판단하고 나중에 다시 시도한다)
+    connectionTimeoutMillis: 8000,
+    query_timeout: 10000,
+    statement_timeout: 10000,
+    idleTimeoutMillis: 30000,
+    max: 5,
   });
 
-  const ready = pool.query(`
-    CREATE TABLE IF NOT EXISTS saves (
-      player_id TEXT PRIMARY KEY,
-      secret    TEXT        NOT NULL,
-      rev       BIGINT      NOT NULL DEFAULT 0,
-      saved_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-      state     JSONB       NOT NULL
-    )`);
+  // 유휴 커넥션에서 나는 오류로 프로세스가 죽지 않게 한다
+  pool.on('error', e => console.error('[store] pg 유휴 커넥션 오류:', e.message));
+
+  // 테이블 준비는 '첫 요청 때' 한 번만 한다.
+  //  · 서버가 뜰 때 바로 접속하면, DB 가 아직 안 떴을 때 처리되지 않은 거부로 죽는다
+  //  · 실패하면 ready 를 비워 두어 다음 요청에서 다시 시도한다 (DB 가 늦게 떠도 회복)
+  let ready = null;
+  const ensure = () => {
+    if (!ready) {
+      ready = pool.query(`
+        CREATE TABLE IF NOT EXISTS saves (
+          player_id TEXT PRIMARY KEY,
+          secret    TEXT        NOT NULL,
+          rev       BIGINT      NOT NULL DEFAULT 0,
+          saved_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+          state     JSONB       NOT NULL
+        )`).catch(e => { ready = null; throw e; });
+    }
+    return ready;
+  };
 
   return {
     kind: 'postgres',
     async get(playerId) {
-      await ready;
+      await ensure();
       const r = await pool.query(
         'SELECT player_id, secret, rev, saved_at, state FROM saves WHERE player_id = $1', [playerId]);
       if (!r.rows.length) return null;
@@ -44,7 +64,7 @@ function pgStore(url) {
       return { playerId: row.player_id, secret: row.secret, rev: Number(row.rev), savedAt: row.saved_at, state: row.state };
     },
     async put(playerId, secret, rev, state) {
-      await ready;
+      await ensure();
       await pool.query(
         `INSERT INTO saves (player_id, secret, rev, saved_at, state)
          VALUES ($1, $2, $3, now(), $4)
@@ -53,11 +73,11 @@ function pgStore(url) {
         [playerId, secret, rev, state]);
     },
     async del(playerId) {
-      await ready;
+      await ensure();
       await pool.query('DELETE FROM saves WHERE player_id = $1', [playerId]);
     },
     async count() {
-      await ready;
+      await ensure();
       const r = await pool.query('SELECT count(*)::int AS n FROM saves');
       return r.rows[0].n;
     },
@@ -107,9 +127,25 @@ function memStore() {
   };
 }
 
+// Railway 는 Postgres 를 붙여도 접속 주소를 다른 서비스에 자동으로 넣어 주지 않는다.
+// 직접 참조 변수를 만들어야 하는데(예: DATABASE_URL = ${{Postgres.DATABASE_URL}}),
+// 이름을 무엇으로 지었든 걸리도록 흔히 쓰는 이름을 모두 살펴본다.
+const PG_ENV_KEYS = ['DATABASE_URL', 'DATABASE_PRIVATE_URL', 'POSTGRES_URL', 'PG_URL', 'POSTGRESQL_URL'];
+
+function pgUrlFrom(env) {
+  for (const k of PG_ENV_KEYS) {
+    const v = (env[k] || '').trim();
+    // 참조 변수를 잘못 적으면 '${{Postgres.DATABASE_URL}}' 문자열이 그대로 들어온다
+    if (v && /^postgres(ql)?:\/\//.test(v)) return { key: k, url: v };
+    if (v) console.warn(`[store] ${k} 값이 접속 주소 형식이 아닙니다: ${v.slice(0, 40)}`);
+  }
+  return null;
+}
+
 function createStore(env) {
   env = env || process.env;
-  if (env.DATABASE_URL) return pgStore(env.DATABASE_URL);
+  const pg = pgUrlFrom(env);
+  if (pg) return pgStore(pg.url);
   if (env.DATA_DIR) return fileStore(env.DATA_DIR);
   return memStore();
 }

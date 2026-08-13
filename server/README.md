@@ -62,16 +62,39 @@ Railway 의 기본 파일시스템은 배포할 때마다 초기화되기 때문
 
 둘 중 하나를 고른다.
 
-**(권장) Postgres**
+**(권장) Postgres — 두 단계다**
 
-프로젝트에서 **New** → **Database** → **Add PostgreSQL**.
-붙이면 `DATABASE_URL` 환경변수가 자동으로 들어간다. 서버가 알아서 감지하고
-테이블(`saves`)도 처음 뜰 때 스스로 만든다. **추가 설정 없음.**
+**③-1 데이터베이스 추가**
+
+캔버스(서비스 패널을 닫으면 보이는 격자 배경)에서 **우클릭** → `Database` → `Add PostgreSQL`.
+또는 캔버스 우측 상단 **`+ Create`**, 또는 `Cmd/Ctrl + K` → `Postgres`.
+
+**③-2 게임 서비스에 연결 (이걸 빠뜨리기 쉽다)**
+
+> ⚠️ **Postgres 를 추가하는 것만으로는 연결되지 않는다.**
+> 접속 주소는 Postgres 서비스 안에만 생기고, 게임 서비스로 자동으로 넘어오지 않는다.
+
+Alchemist 서비스 → **Variables** 탭에서:
+
+- 보라색 배너 **"Trying to connect a database? Add Variable"** 을 누르고 Postgres 를 고르거나,
+- **`+ New Variable`** 로 직접 만든다:
+
+| 이름 | 값 |
+|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+
+`${{ }}` 는 Railway 의 **참조 문법**이다. 값을 복사해 붙여넣지 말 것 —
+비밀번호가 바뀌면 연결이 끊긴다. `Postgres` 자리에는 캔버스에 보이는 서비스 이름을 그대로 쓴다.
+
+넣은 뒤 **Deploy** 를 눌러 재배포해야 반영된다.
+
+서버는 `DATABASE_URL` 외에 `DATABASE_PRIVATE_URL` `POSTGRES_URL` 등도 알아서 찾는다.
+테이블(`saves`)은 처음 뜰 때 스스로 만든다.
 
 **(대안) Volume**
 
-서비스 → **Settings** → **Volumes** → 마운트 경로를 `/data` 로 추가하고,
-**Variables** 에 `DATA_DIR=/data` 를 넣는다.
+Alchemist 서비스 → **Settings** → **Volumes** → 마운트 경로를 `/data` 로 추가하고,
+**Variables** 에 `DATA_DIR` = `/data` 를 넣는다. (이쪽은 참조 문법이 아니라 그냥 경로)
 
 ### ④ 도메인 연결
 
@@ -91,7 +114,9 @@ https://alchemist-production-7583.up.railway.app/api/health → {"ok":true,"stor
 |---|---|
 | `postgres` | ✅ 제대로 저장된다 |
 | `file(/data)` | ✅ 제대로 저장된다 |
-| `memory(휘발성)` | ⚠️ **재배포하면 다 날아간다** — ③ 을 하지 않은 상태 |
+| `memory(휘발성)` | ⚠️ **재배포하면 다 날아간다** — ③ 이 덜 끝난 상태. 특히 ③-2 를 빠뜨렸는지 확인할 것 |
+
+`memory` 로 뜬다면 배포 로그(Deployments → 최신 배포)에 무엇이 빠졌는지 그대로 찍혀 있다.
 
 ---
 
