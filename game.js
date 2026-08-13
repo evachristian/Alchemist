@@ -18,8 +18,8 @@ const defaultState = () => ({
   potions:   {},          // { potionId: count } (미사용 물약 보관)
   creatures: [],          // [creatureId, ...] (전시 중)
   stats:     { beauty: 0, charm: 0 },
-  discovered: [],         // 발견한 레시피 result.id 목록
-  cauldron:  [],          // 현재 가마솥에 넣은 재료 id (최대 3)
+  discovered: ['vitality', 'blush'],   // 처음부터 알고 있는 하급 물약 2종
+  cauldron:  [],          // 현재 마법 솥에 넣은 재료 id (솥의 구멍 수만큼)
   gathered:  0,           // 총 채집 횟수 (통계)
   outfit:    { ...D.DEFAULT_OUTFIT },  // 아바타 착장 (슬롯 → 아이템 id)
   unlocked:  [],          // 해금한 커스터마이징 아이템 id 목록 (starter 외)
@@ -28,6 +28,7 @@ const defaultState = () => ({
   name:      '',            // 연금술사 이름 (튜토리얼 종료 후 입력)
   // 아우라 세부 수치 (각 0~1000)
   aura:      { happy: 100, grace: 100, unique: 100, grit: 100, luck: 100 },
+  cauldronId: 'cd_iron',    // 사용 중인 마법 솥
   firstTs:   Date.now(),    // 첫 플레이 시각 — 키 성장의 기준
   ver:       SAVE_VER,      // 세이브 버전 (마이그레이션용)
 });
@@ -43,6 +44,7 @@ function load() {
       st.outfit = Object.assign({ ...D.DEFAULT_OUTFIT }, st.outfit || {});
       st.aura = Object.assign({ happy: 100, grace: 100, unique: 100, grit: 100, luck: 100 }, st.aura || {});
       if (!st.firstTs) st.firstTs = Date.now();
+      if (!st.cauldronId) st.cauldronId = 'cd_iron';
       if (!Array.isArray(st.unlocked)) st.unlocked = [];
       // 버전은 '저장된 값' 에서 읽어야 한다.
       // (defaultState 가 최신 버전을 채워 넣으므로 병합 후의 st.ver 로는 판별할 수 없음)
@@ -346,7 +348,7 @@ function gather(mapId) {
 //  공방 / 가마솥 (Atelier)
 // ═══════════════════════════════════════════════════════════════
 function addToCauldron(id) {
-  if (S.cauldron.length >= 3) { toast(T('cauldron_full')); return; }
+  if (S.cauldron.length >= cauldronSlots()) { toast(T('cauldron_full', { n: cauldronSlots() })); return; }
   if (invCount(id) - S.cauldron.filter(x => x === id).length <= 0) {
     toast(T('not_enough_mat')); return;
   }
@@ -540,15 +542,35 @@ function renderGather() {
 
 function renderAtelier() {
   // 가마솥 슬롯
+  // 솥 선택 줄
+  const cdEl = document.getElementById('cauldronPicker');
+  if (cdEl) {
+    cdEl.innerHTML = D.CAULDRONS.map(c => {
+      const open = isCauldronOpen(c);
+      return `<button class="cat-tab ${S.cauldronId === c.id ? 'active' : ''} ${open ? '' : 'locked'}"
+        onclick="chooseCauldron('${c.id}', this)">${open ? c.emoji : '🔒'} ${N(c.id, c.name)} ${c.slots}${T('slot_unit')}</button>`;
+    }).join('');
+  }
+
+  // 재료 구멍 — 솥의 구멍 수만큼 원형으로 배치
   const slots = document.getElementById('cauldronSlots');
+  const n = cauldronSlots();
+  slots.className = 'cauldron-slots n' + n;
   let slotsHtml = '';
-  for (let i = 0; i < 3; i++) {
+  // 구멍이 많을수록 원을 조금 키워 서로 붙지 않게 한다 (36% → 41%)
+  const radius = n <= 6 ? 36 : 36 + (n - 6) * (5 / 6);
+  for (let i = 0; i < n; i++) {
     const id = S.cauldron[i];
+    // 원 위에 고르게 배치 (위쪽부터 시계 방향)
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / n;
+    const rx = 50 + Math.cos(ang) * radius, ry = 50 + Math.sin(ang) * radius;
+    const pos = `left:${rx.toFixed(1)}%;top:${ry.toFixed(1)}%`;
     if (id) {
-      slotsHtml += `<div class="c-slot filled" onclick="removeFromCauldron(${i})">
+      const rare = D.INGREDIENTS[id].rare ? ' rare' : '';
+      slotsHtml += `<div class="c-slot filled${rare}" style="${pos}" onclick="removeFromCauldron(${i})">
         ${D.INGREDIENTS[id].emoji}<span class="c-slot-x">✕</span></div>`;
     } else {
-      slotsHtml += `<div class="c-slot empty">+</div>`;
+      slotsHtml += `<div class="c-slot empty" style="${pos}">+</div>`;
     }
   }
   slots.innerHTML = slotsHtml;
@@ -600,7 +622,10 @@ function renderAtelier() {
     const found = S.discovered.includes(r.result.id);
     const inputs = r.inputs.map(id => D.INGREDIENTS[id].emoji).join(' + ');
     if (found) {
-      return `<div class="recipe-row ${r.result.id === lastFound ? 'just-found' : ''}">
+      // 재료가 다 있고 구멍도 충분하면 눌러서 한 번에 담을 수 있다
+      const ready = canFillRecipe(r);
+      return `<div class="recipe-row clickable ${ready ? '' : 'short'} ${r.result.id === lastFound ? 'just-found' : ''}"
+        data-recipe="${r.result.id}" onclick="fillFromRecipe('${r.result.id}', this)">
         <span class="recipe-in">${inputs}</span>
         <span class="recipe-arrow">→</span>
         <span class="recipe-out">${r.result.emoji} ${N(r.result.id, r.result.name)}</span>
@@ -727,6 +752,24 @@ function isZoneOpen(z) { return totalCharm() >= D.zoneUnlock(z.id); }
 function unlockText(score) {
   const tier = D.getTier(score);
   return T('unlock_at', { tier: TN(tier.title), score: score });
+}
+
+// ─── 마법 솥 ───
+// 선택한 솥의 구멍 수만큼 재료를 넣을 수 있다 (3구 → 12구)
+function currentCauldron() {
+  return D.CAULDRONS.find(c => c.id === S.cauldronId) || D.CAULDRONS[0];
+}
+function cauldronSlots() { return currentCauldron().slots; }
+function isCauldronOpen(c) { return totalCharm() >= c.unlock; }
+function chooseCauldron(id, el) {
+  const c = D.CAULDRONS.find(x => x.id === id);
+  if (!c) return;
+  if (!isCauldronOpen(c)) { toast(unlockText(c.unlock), el); return; }
+  S.cauldronId = id;
+  // 구멍이 줄어들면 넘치는 재료는 가방으로 되돌린다
+  while (S.cauldron.length > c.slots) S.cauldron.pop();
+  save(); render();
+  toast(T('cauldron_picked', { name: N(c.id, c.name), n: c.slots }), el);
 }
 
 // 채집 지대 (채집 화면의 카테고리 탭)
@@ -923,6 +966,28 @@ const AURA_BY_POTION = {
   vitality:  ['grit'],             // 생기 물약 → 근성
   rainbow:   AURA_KEYS,            // 무지개 엘릭서 → 전부
 };
+
+// ─── 레시피를 눌러 재료 자동 삽입 ───
+// 필요한 재료가 가방에 다 있고 솥 구멍도 충분해야 담긴다.
+function canFillRecipe(r) {
+  if (r.inputs.length > cauldronSlots()) return false;
+  const need = {};
+  r.inputs.forEach(id => { need[id] = (need[id] || 0) + 1; });
+  return Object.keys(need).every(id => invCount(id) >= need[id]);
+}
+function fillFromRecipe(resultId, el) {
+  const r = D.RECIPES.find(x => x.result.id === resultId);
+  if (!r) return;
+  if (r.inputs.length > cauldronSlots()) {
+    toast(T('need_bigger_pot', { n: r.inputs.length }), el);
+    return;
+  }
+  if (!canFillRecipe(r)) { toast(T('not_enough_mat'), el); return; }
+  S.cauldron = r.inputs.slice();
+  save(); render();
+  toast(T('recipe_filled', { name: N(r.result.id, r.result.name) }), el);
+  if (window.Sfx) Sfx.play('pick');
+}
 
 // ─── 신체 · 아우라 상세 수치 표시 ───
 function renderVitals() {

@@ -237,8 +237,9 @@ body {
 }
 .c-slot.empty { border: 2px dashed var(--lav-2); color: var(--text-lav); background: var(--cream); }
 .c-slot.filled { background: var(--mint); cursor: pointer; box-shadow: inset 0 0 0 2px var(--mint-2); }
-.c-slot.filled:active { transform: scale(0.92); }
-.c-slot-x { position: absolute; top: -6px; right: -6px; font-size: 0.7rem; background: var(--pink-2); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; }
+
+/* 빼기 배지 — 흰 ✕ 가 읽히도록 진한 핑크를 쓴다 (TEXT_POLICY 대비 4.5:1) */
+.c-slot-x { position: absolute; top: -6px; right: -6px; font-size: 0.7rem; background: var(--text-pink); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; }
 
 /* ─── 마법진(연성진) 재료 슬롯 ─── */
 .magic-circle { position: relative; width: 250px; max-width: 88%; aspect-ratio: 1 / 1; margin: 10px auto 6px; }
@@ -249,10 +250,31 @@ body {
 .mc-core { transform-origin: 120px 120px; animation: mccore 3.4s ease-in-out infinite; }
 @keyframes mccore { 0%,100% { opacity: 0.6; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.06); } }
 .magic-circle .cauldron-slots { position: absolute; inset: 0; display: block; margin: 0; }
-.magic-circle .c-slot { position: absolute; width: 52px; height: 52px; border-radius: 50%; font-size: 1.55rem; }
-.magic-circle .c-slot:nth-child(1) { top: 15%; left: 14%; }
-.magic-circle .c-slot:nth-child(2) { top: 15%; right: 14%; }
-.magic-circle .c-slot:nth-child(3) { left: 50%; bottom: 8%; transform: translateX(-50%); }
+/* 재료 구멍 — 개수(3~12)에 맞춰 JS 가 원 위 좌표를 계산해 넣는다 */
+.magic-circle .c-slot {
+  position: absolute; width: 52px; height: 52px; border-radius: 50%; font-size: 1.55rem;
+  transform: translate(-50%, -50%);
+}
+/* 구멍이 많아지면 조금씩 작게 */
+.cauldron-slots.n7 .c-slot, .cauldron-slots.n8 .c-slot { width: 46px; height: 46px; font-size: 1.35rem; }
+.cauldron-slots.n9 .c-slot, .cauldron-slots.n10 .c-slot { width: 42px; height: 42px; font-size: 1.2rem; }
+.cauldron-slots.n11 .c-slot, .cauldron-slots.n12 .c-slot { width: 38px; height: 38px; font-size: 1.05rem; }
+/* 구멍이 촘촘해지면 빼기 배지도 같이 줄여 옆 구멍을 침범하지 않게 한다 */
+.cauldron-slots.n9 .c-slot-x, .cauldron-slots.n10 .c-slot-x,
+.cauldron-slots.n11 .c-slot-x, .cauldron-slots.n12 .c-slot-x {
+  /* 글자 크기는 최소치(11px = 0.7rem) 아래로 내리지 않는다 — 원만 줄인다 (TEXT_POLICY 3장) */
+  width: 15px; height: 15px; top: -4px; right: -4px;
+}
+/* 특별(희귀) 재료가 담긴 구멍 — 금빛 테두리 + 은은한 발광 */
+.magic-circle .c-slot.rare {
+  background: rgba(72,52,26,0.95);
+  box-shadow: inset 0 0 0 2.5px #ffd76a, 0 0 18px rgba(255,215,106,0.85);
+  animation: rareGlow 1.8s ease-in-out infinite;
+}
+@keyframes rareGlow {
+  0%,100% { box-shadow: inset 0 0 0 2.5px #ffd76a, 0 0 14px rgba(255,215,106,0.7); }
+  50%     { box-shadow: inset 0 0 0 2.5px #fff0b8, 0 0 24px rgba(255,215,106,1); }
+}
 .magic-circle .c-slot.empty {
   border: 2px dashed rgba(224,196,120,0.85); color: #f7e6b4; background: rgba(28,20,44,0.72);
   box-shadow: 0 0 12px rgba(200,140,230,0.35), inset 0 0 8px rgba(200,140,230,0.25);
@@ -261,7 +283,7 @@ body {
   background: rgba(58,44,86,0.92);
   box-shadow: inset 0 0 0 2px rgba(224,196,120,0.9), 0 0 16px rgba(200,140,230,0.6);
 }
-.magic-circle .c-slot:nth-child(3).filled:active { transform: translateX(-50%) scale(0.92); }
+.magic-circle .c-slot.filled:active { transform: translate(-50%, -50%) scale(0.92); }
 .cauldron-actions { display: flex; gap: 10px; min-width: 0; }
 .cauldron-actions > .btn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -314,6 +336,18 @@ body {
   background: var(--card); border-radius: 14px; padding: 11px 14px;
   box-shadow: var(--shadow); font-size: 0.9rem;
 }
+.recipe-row.clickable { cursor: pointer; transition: transform 0.1s ease, border-color 0.15s ease; }
+.recipe-row.clickable:active { transform: scale(0.985); }
+/* 지금 바로 만들 수 있는 레시피 — 눌러 담으라는 신호로 민트 띠를 두른다.
+   (재료가 모자라거나 구멍이 부족한 `.short` 는 평범한 카드 그대로 두고,
+    눌렀을 때 무엇이 모자란지 토스트로 알려 준다.
+    `.locked` 와 같은 배경을 쓰지 않는 이유는 '아직 못 만드는 것'과
+    '아직 모르는 것'이 서로 달라 보여야 하기 때문) */
+.recipe-row.clickable:not(.short) {
+  background: linear-gradient(90deg, var(--mint) 0%, var(--card) 42%);
+  box-shadow: var(--shadow), inset 3px 0 0 var(--text-mint);
+}
+.cd-tabs { margin-bottom: 12px; }
 .recipe-row.locked { background: var(--cream); }
 .recipe-row.locked .recipe-in,
 .recipe-row.locked .recipe-out,

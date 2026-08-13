@@ -28,6 +28,13 @@
       + ' .wr-tab.dim, .wr-item.locked, [disabled], [aria-disabled="true"]',
   };
 
+  // 이모지만으로 이루어진 글자는 대비 검사에서 제외한다.
+  // 이모지는 색을 스스로 가진 그림 글자라 CSS color 가 적용되지 않는다 —
+  // 대비를 재도 의미가 없다. (✕ · → 같은 단색 기호는 색이 먹으므로 그대로 검사한다)
+  const PICTO = /\p{Extended_Pictographic}/u;
+  const PICTO_ONLY = /^[\s\u200D\uFE0E\uFE0F\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}]+$/u;
+  function pictogramOnly(text) { return PICTO.test(text) && PICTO_ONLY.test(text); }
+
   // ─── 색 계산 ───
   function parseColor(str) {
     const m = String(str).match(/rgba?\(([^)]+)\)/);
@@ -122,7 +129,8 @@
       const ratio = contrast(fg, bgInfo.color);
 
       const issues = [];
-      if (ratio < need) {
+      // 이모지만 있는 칸은 대비를 재지 않는다 (색을 스스로 가진 그림 글자)
+      if (ratio < need && !pictogramOnly(text)) {
         issues.push(`대비 ${ratio.toFixed(2)}:1 (필요 ${need}:1)`);
       }
       if (sizePx < POLICY.minFontPx) {
