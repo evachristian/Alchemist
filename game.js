@@ -5,7 +5,11 @@ const D = window.GameData;
 const SAVE_KEY = 'dieter_alchemist_save_v1';
 // 세이브 버전 — 기본값을 바꿨을 때 예전 세이브에도 한 번 반영하기 위해 사용
 //  1: 최초  /  2: 시작 외형을 튜토리얼 인트로의 공주(갈색 긴 머리 + 연두 드레스)로 통일
-const SAVE_VER = 2;
+//  3: 시작부터 알고 있는 하급 물약 2종
+const SAVE_VER = 3;
+
+// 처음부터 알고 있는 레시피. defaultState 와 migrate 가 같이 쓰므로 값이 어긋나지 않는다.
+const STARTER_RECIPES = ['vitality', 'blush'];
 
 // ─── i18n 단축 헬퍼 (i18n.js 없으면 한국어 원문 유지) ───
 const T  = (k, v) => (window.I18N ? I18N.t(k, v) : k);
@@ -18,7 +22,7 @@ const defaultState = () => ({
   potions:   {},          // { potionId: count } (미사용 물약 보관)
   creatures: [],          // [creatureId, ...] (전시 중)
   stats:     { beauty: 0, charm: 0 },
-  discovered: ['vitality', 'blush'],   // 처음부터 알고 있는 하급 물약 2종
+  discovered: [...STARTER_RECIPES],   // 처음부터 알고 있는 하급 물약 2종
   cauldron:  [],          // 현재 마법 솥에 넣은 재료 id (솥의 구멍 수만큼)
   gathered:  0,           // 총 채집 횟수 (통계)
   outfit:    { ...D.DEFAULT_OUTFIT },  // 아바타 착장 (슬롯 → 아이템 id)
@@ -63,6 +67,12 @@ function migrate(st, from) {
   if (from < 2) {
     // 시작 외형을 튜토리얼 인트로의 공주로 맞춘다 (옷은 언제든 다시 갈아입을 수 있음)
     st.outfit = { ...D.DEFAULT_OUTFIT };
+  }
+  if (from < 3) {
+    // 시작 레시피 2종을 이미 플레이 중인 세이브에도 열어 준다.
+    // (이미 알아낸 레시피는 그대로 두고 없는 것만 채운다)
+    if (!Array.isArray(st.discovered)) st.discovered = [];
+    STARTER_RECIPES.forEach(id => { if (!st.discovered.includes(id)) st.discovered.push(id); });
   }
   st.ver = SAVE_VER;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
